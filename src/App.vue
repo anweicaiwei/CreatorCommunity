@@ -1,6 +1,7 @@
 <script setup>
-import { ref, computed, watch, h } from 'vue'
+import { ref, computed, watch, h, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { QuestionFilled } from '@element-plus/icons-vue'
 import { useWallet } from '@/composables/useWallet'
 import { useTransaction } from '@/composables/useTransaction'
 import { usePostList } from '@/composables/usePostList'
@@ -21,6 +22,20 @@ import RewardSection from '@/components/RewardSection.vue'
 import PostSection from '@/components/PostSection.vue'
 import NFTSection from '@/components/NFTSection.vue'
 import AdminSection from '@/components/AdminSection.vue'
+import ManualView from '@/components/ManualView.vue'
+
+const isManualPage = ref(window.location.hash === '#/manual')
+
+function onHashChange() {
+  isManualPage.value = window.location.hash === '#/manual'
+}
+
+onMounted(() => window.addEventListener('hashchange', onHashChange))
+onBeforeUnmount(() => window.removeEventListener('hashchange', onHashChange))
+
+function navigateToManual() {
+  window.location.hash = '#/manual'
+}
 
 const {
   account, chainId, isConnected, isCorrectNetwork,
@@ -422,8 +437,16 @@ watch(account, (newAddr, oldAddr) => {
 </script>
 
 <template>
-  <div class="app-page">
-    <h1 class="app-title">CreatorCommunity 合约交互</h1>
+  <ManualView v-if="isManualPage" />
+
+  <div v-else class="app-page">
+    <div class="app-header">
+      <h1 class="app-title">CreatorCommunity 合约交互</h1>
+      <a class="manual-link" @click.prevent="navigateToManual" href="#/manual">
+        <el-icon><QuestionFilled /></el-icon>
+        <span>用户手册</span>
+      </a>
+    </div>
 
     <div class="layout-grid">
       <div class="left-col">
@@ -515,11 +538,37 @@ watch(account, (newAddr, oldAddr) => {
   padding: 24px;
 }
 
-.app-title {
-  text-align: center;
-  color: #2c5282;
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.app-title {
+  color: #2c5282;
+  margin: 0;
   font-size: 24px;
+}
+
+.manual-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #409eff;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 4px 12px;
+  border: 1px solid #409eff;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.manual-link:hover {
+  background: #409eff;
+  color: #fff;
 }
 
 .layout-grid {
