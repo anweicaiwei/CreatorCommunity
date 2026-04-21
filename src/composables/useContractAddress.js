@@ -31,6 +31,25 @@ function saveAddresses(token, nft) {
   } catch {}
 }
 
+function clearAllContractData(chainId, tokenAddr) {
+  try {
+    const prefix = `creatorcommunity_${chainId}_${tokenAddr}_`
+    const addrKeys = [
+      `creatorcommunity_${chainId}_token_address`,
+      `creatorcommunity_${chainId}_nft_address`
+    ]
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i)
+      if (key && (key.startsWith(prefix) || addrKeys.includes(key))) {
+        localStorage.removeItem(key)
+      }
+    }
+  } catch {}
+  tokenAddress.value = null
+  nftAddress.value = null
+  addressesLoaded.value = false
+}
+
 function clearAddresses() {
   tokenAddress.value = null
   nftAddress.value = null
@@ -63,6 +82,7 @@ export function useContractAddress() {
     loadAddresses,
     saveAddresses,
     clearAddresses,
+    clearAllContractData,
     saveChainId
   }
 }
