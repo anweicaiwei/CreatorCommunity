@@ -1,0 +1,190 @@
+import { ref, shallowRef, computed } from 'vue'
+import { ethers } from 'ethers'
+import { CONTRACTS, NETWORK_CONFIG } from '@/contracts'
+
+const account = ref(null)
+const chainId = ref(null)
+const provider = shallowRef(null)
+const signer = shallowRef(null)
+const isConnected = computed(() => !!account.value)
+const isCorrectNetwork = computed(() => Number(chainId.value) === NETWORK_CONFIG.targetChainId)
+const isInitializing = ref(false)
+const error = ref(null)
+const currentNetwork = computed(() => {
+  if (Number(chainId.value) === NETWORK_CONFIG.targetChainId) return NETWORK_CONFIG
+  return { name: `未知网络 (${chainId.value})` }
+})
+const isOwner = ref(false)
+
+const tokenContractRead = shallowRef(null)
+const tokenContractWrite = shallowRef(null)
+const nftContractRead = shallowRef(null)
+const nftContractWrite = shallowRef(null)
+
+function createContractInstances() {
+  const tokenAddr = CONTRACTS.CreatorToken.address
+  const nftAddr = CONTRACTS.CreatorNFT.address
+
+  if (!tokenAddr || !nftAddr || !provider.value) return
+
+  tokenContractRead.value = new ethers.Contract(tokenAddr, CONTRACTS.CreatorToken.abi, provider.value)
+  nftContractRead.value = new ethers.Contract(nftAddr, CONTRACTS.CreatorNFT.abi, provider.value)
+
+  if (signer.value) {
+    tokenContractWrite.value = new ethers.Contract(tokenAddr, CONTRACTS.CreatorToken.abi, signer.value)
+    nftContractWrite.value = new ethers.Contract(nftAddr, CONTRACTS.CreatorNFT.abi, signer.value)
+  }
+}
+
+async function checkOwner() {
+  if (!tokenContractRead.value || !account.value) {
+    isOwner.value = false
+    return
+  }
+  try {
+    const ownerAddr = await tokenContractRead.value.owner()
+    isOwner.value = ownerAddr.toLowerCase() === account.value.toLowerCase()
+  } catch {
+    isOwner.value = false
+  }
+}
+
+async function connect() {
+  if (!window.ethereum) {
+    error.value = '请安装 MetaMask 钢包扩展'
+    return
+  }
+
+  isInitializing.value = true
+  error.value = null
+
+  try {
+    const browserProvider = new ethers.BrowserProvider(window.ethereum)
+    const accounts = await browserProvider.send('eth_requestAccounts', [])
+    const network = await browserProvider.getNetwork()
+    const userSigner = await browserProvider.getSigner()
+
+    account.value = accounts[0]
+    chainId.value = Number(network.chainId)
+    provider.value = browserProvider
+    signer.value = userSigner
+
+    createContractInstances()
+    await checkOwner()
+  } catch (e) {
+    if (e.code === 4001) {
+      error.value = '您拒绝了钱包连接请求'
+    } else {
+      error.value = `连接失败: ${e.message}`
+    }
+  } finally {
+    isInitializing.value = false
+  }
+}
+
+async function switchNetwork() {
+  if (!window.ethereum) return
+
+  const targetHex = `0x${NETWORK_CONFIG.targetChainId.toString(16)}`
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId: targetHex }]
+    })
+  } catch (e) {
+    if (e.code === 4902) {
+      try {
+        await window.ethereum.request({
+          method: 'wallet_addEthereumChain',
+          params: [{
+            chainId: targetHex,
+            chainName: NETWORK_CONFIG.name,
+            rpcUrls: [NETWORK_CONFIG.rpcUrl],
+            nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
+          }]
+        })
+      } catch (addErr) {
+        error.value = '添加网络失败，请手动切换'
+      }
+    } else {
+      error.value = '切换网络失败，请手动在 MetaMask 中切换'
+    }
+  }
+}
+
+function disconnect() {
+  account.value = null
+  chainId.value = null
+  provider.value = null
+  signer.value = null
+  tokenContractRead.value = null
+  tokenContractWrite.value = null
+  nftContractRead.value = null
+  nftContractWrite.value = null
+  isOwner.value = false
+  error.value = null
+}
+
+let listenersSetup = false
+
+function setupListeners() {
+  if (!window.ethereum || listenersSetup) return
+  listenersSetup = true
+
+  window.ethereum.on('accountsChanged', async (accounts) => {
+    if (accounts.length === 0) {
+      disconnect()
+    } else {
+      account.value = accounts[0]
+      try {
+        const newProvider = new ethers.BrowserProvider(window.ethereum)
+        const newSigner = await newProvider.getSigner()
+        provider.value = newProvider
+        signer.value = newSigner
+        createContractInstances()
+        await checkOwner()
+      } catch {
+        disconnect()
+      }
+    }
+  })
+
+  window.ethereum.on('chainChanged', async () => {
+    try {
+      const newProvider = new ethers.BrowserProvider(window.ethereum)
+      const network = await newProvider.getNetwork()
+      const newSigner = await newProvider.getSigner()
+      provider.value = newProvider
+      signer.value = newSigner
+      chainId.value = Number(network.chainId)
+      createContractInstances()
+      await checkOwner()
+    } catch {
+      disconnect()
+    }
+  })
+}
+
+export function useWallet() {
+  setupListeners()
+
+  return {
+    account,
+    chainId,
+    provider,
+    signer,
+    isConnected,
+    isCorrectNetwork,
+    isInitializing,
+    error,
+    currentNetwork,
+    isOwner,
+    tokenContractRead,
+    tokenContractWrite,
+    nftContractRead,
+    nftContractWrite,
+    connect,
+    disconnect,
+    switchNetwork
+  }
+}
