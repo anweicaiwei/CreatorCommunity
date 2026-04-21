@@ -516,19 +516,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "TOTAL_RATIO",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "address",
@@ -651,53 +638,21 @@
   },
   {
     "inputs": [],
-    "name": "getCurrentWithdrawalThreshold",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "owner",
-        "type": "address"
-      }
-    ],
-    "name": "getNFTCountByOwner",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "getNFTRankCounts",
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "bronzeCount",
+        "name": "bc",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "silverCount",
+        "name": "sc",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "goldCount",
+        "name": "gc",
         "type": "uint256"
       }
     ],
@@ -708,7 +663,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
+        "name": "_owner",
         "type": "address"
       }
     ],
@@ -716,17 +671,17 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "bronzeCount",
+        "name": "bc",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "silverCount",
+        "name": "sc",
         "type": "uint256"
       },
       {
         "internalType": "uint256",
-        "name": "goldCount",
+        "name": "gc",
         "type": "uint256"
       }
     ],
@@ -737,7 +692,7 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "owner",
+        "name": "_owner",
         "type": "address"
       }
     ],
@@ -747,19 +702,6 @@
         "internalType": "uint256[]",
         "name": "",
         "type": "uint256[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getNextTokenId",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -829,6 +771,19 @@
       }
     ],
     "name": "isApprovedForAll",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "isPaused",
     "outputs": [
       {
         "internalType": "bool",
@@ -946,6 +901,13 @@
   {
     "inputs": [],
     "name": "randomlyAdjustNFTPrice",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "recoverCTK",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

@@ -27,7 +27,7 @@ async function execute(fn) {
   try {
     status.value = 'pending'
     const txResponse = await fn()
-    txHash.value = txResponse.hash
+    txHash.value = String(txResponse.hash)
     receipt.value = await txResponse.wait()
     status.value = 'success'
     return receipt.value

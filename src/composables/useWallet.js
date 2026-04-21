@@ -1,6 +1,7 @@
-import { ref, shallowRef, computed } from 'vue'
+import { ref, shallowRef, computed, watch } from 'vue'
 import { ethers } from 'ethers'
-import { CONTRACTS, NETWORK_CONFIG } from '@/contracts'
+import { getContracts, NETWORK_CONFIG } from '@/contracts'
+import { useContractAddress } from '@/composables/useContractAddress'
 
 const account = ref(null)
 const chainId = ref(null)
@@ -21,18 +22,31 @@ const tokenContractWrite = shallowRef(null)
 const nftContractRead = shallowRef(null)
 const nftContractWrite = shallowRef(null)
 
+const contractsReady = computed(() =>
+  !!tokenContractRead.value && !!nftContractRead.value
+)
+
+const { tokenAddress, nftAddress, loadAddresses, saveChainId, clearAddresses } = useContractAddress()
+
 function createContractInstances() {
-  const tokenAddr = CONTRACTS.CreatorToken.address
-  const nftAddr = CONTRACTS.CreatorNFT.address
+  const contracts = getContracts()
+  const tokenAddr = contracts.CreatorToken.address
+  const nftAddr = contracts.CreatorNFT.address
 
-  if (!tokenAddr || !nftAddr || !provider.value) return
+  if (!tokenAddr || !nftAddr || !provider.value) {
+    tokenContractRead.value = null
+    tokenContractWrite.value = null
+    nftContractRead.value = null
+    nftContractWrite.value = null
+    return
+  }
 
-  tokenContractRead.value = new ethers.Contract(tokenAddr, CONTRACTS.CreatorToken.abi, provider.value)
-  nftContractRead.value = new ethers.Contract(nftAddr, CONTRACTS.CreatorNFT.abi, provider.value)
+  tokenContractRead.value = new ethers.Contract(tokenAddr, contracts.CreatorToken.abi, provider.value)
+  nftContractRead.value = new ethers.Contract(nftAddr, contracts.CreatorNFT.abi, provider.value)
 
   if (signer.value) {
-    tokenContractWrite.value = new ethers.Contract(tokenAddr, CONTRACTS.CreatorToken.abi, signer.value)
-    nftContractWrite.value = new ethers.Contract(nftAddr, CONTRACTS.CreatorNFT.abi, signer.value)
+    tokenContractWrite.value = new ethers.Contract(tokenAddr, contracts.CreatorToken.abi, signer.value)
+    nftContractWrite.value = new ethers.Contract(nftAddr, contracts.CreatorNFT.abi, signer.value)
   }
 }
 
@@ -48,6 +62,12 @@ async function checkOwner() {
     isOwner.value = false
   }
 }
+
+// Watch for address/provider/signer changes to recreate contract instances
+watch([tokenAddress, nftAddress, provider, signer], () => {
+  createContractInstances()
+  checkOwner()
+})
 
 async function connect() {
   if (!window.ethereum) {
@@ -69,8 +89,8 @@ async function connect() {
     provider.value = browserProvider
     signer.value = userSigner
 
-    createContractInstances()
-    await checkOwner()
+    saveChainId(Number(network.chainId))
+    loadAddresses(Number(network.chainId))
   } catch (e) {
     if (e.code === 4001) {
       error.value = '您拒绝了钱包连接请求'
@@ -123,6 +143,7 @@ function disconnect() {
   nftContractWrite.value = null
   isOwner.value = false
   error.value = null
+  // Do NOT clear localStorage addresses — disconnecting ≠ resetting deployment
 }
 
 let listenersSetup = false
@@ -141,8 +162,6 @@ function setupListeners() {
         const newSigner = await newProvider.getSigner()
         provider.value = newProvider
         signer.value = newSigner
-        createContractInstances()
-        await checkOwner()
       } catch {
         disconnect()
       }
@@ -157,8 +176,8 @@ function setupListeners() {
       provider.value = newProvider
       signer.value = newSigner
       chainId.value = Number(network.chainId)
-      createContractInstances()
-      await checkOwner()
+      saveChainId(Number(network.chainId))
+      loadAddresses(Number(network.chainId))
     } catch {
       disconnect()
     }
@@ -179,6 +198,7 @@ export function useWallet() {
     error,
     currentNetwork,
     isOwner,
+    contractsReady,
     tokenContractRead,
     tokenContractWrite,
     nftContractRead,
