@@ -1,27 +1,25 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, h } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useWallet } from '@/composables/useWallet'
 import { useTransaction } from '@/composables/useTransaction'
 import { usePostList } from '@/composables/usePostList'
 import { useContractAddress } from '@/composables/useContractAddress'
 import { useDeploy } from '@/composables/useDeploy'
 import { useTxHistory } from '@/composables/useTxHistory'
-import { useChainDataCache } from '@/composables/useChainDataCache'
+import { useDataCache } from '@/composables/useDataCache'
 import { formatTokenAmount, formatCooldown, getCooldownStatus } from '@/utils/format'
 import { DECIMALS } from '@/utils/constants'
 import { NETWORK_CONFIG } from '@/contracts'
 import { ethers } from 'ethers'
 
-// Sub-components
 import WalletSection from '@/components/WalletSection.vue'
 import DeploySection from '@/components/DeploySection.vue'
 import ChainDataSection from '@/components/ChainDataSection.vue'
-import TxResultSection from '@/components/TxResultSection.vue'
 import TxHistorySection from '@/components/TxHistorySection.vue'
 import RewardSection from '@/components/RewardSection.vue'
 import PostSection from '@/components/PostSection.vue'
 import NFTSection from '@/components/NFTSection.vue'
-import TransferSection from '@/components/TransferSection.vue'
 import AdminSection from '@/components/AdminSection.vue'
 
 const {
@@ -33,31 +31,69 @@ const {
 } = useWallet()
 
 const tx = useTransaction()
-const { posts: postList, loading: postLoading, fetchPosts, clearPosts } = usePostList()
+const { posts: postList, loading: postLoading, fetchPosts, clearPosts, savePostsCache, loadPostsCache } = usePostList()
 const { hasAddresses, tokenAddress, nftAddress, clearAddresses, clearAllContractData } = useContractAddress()
 const { deployStatus, deployError, deployedTokenAddress, deployedNftAddress, deploy, resetDeploy } = useDeploy()
 const { txList, loadHistory, addTx, clearHistory } = useTxHistory()
-const { cachedData, hasCache, cacheAge, load: loadCache, save: saveCache, savePartial: saveCachePartial } = useChainDataCache()
+const { load: loadCache, save: saveCache, savePartial: saveCachePartial, clear: clearCache } = useDataCache()
 
 const canInteract = computed(() =>
   isConnected.value && isCorrectNetwork.value && contractsReady.value && hasAddresses.value
 )
 
 async function handleDeploy() {
-  if (!isConnected.value) { error.value = '请先连接钱包'; return }
-  if (!isCorrectNetwork.value) { error.value = '请切换到正确的网络'; return }
+  if (!isConnected.value) { ElMessage.error('请先连接钱包'); return }
+  if (!isCorrectNetwork.value) { ElMessage.error('请切换到正确的网络'); return }
+  ElMessage({ message: '正在部署 CreatorToken + CreatorNFT 合约...', type: 'warning', duration: 0 })
   try {
-    const signer = (await new ethers.BrowserProvider(window.ethereum)).getSigner()
-    await deploy(await signer)
-  } catch {}
+    const provider = new ethers.BrowserProvider(window.ethereum)
+    const signer = await provider.getSigner()
+    const result = await deploy(signer)
+    if (result) {
+      ElMessage.closeAll()
+      ElMessage({
+        message: h('div', null, [
+          h('span', null, '部署成功! Token: '), h('code', null, result.tokenAddress),
+          h('br'),
+          h('span', null, 'NFT: '), h('code', null, result.nftAddress)
+        ]),
+        type: 'success',
+        duration: 8000,
+        showClose: true,
+        offset: 40
+      })
+      await connect()
+    }
+  } catch (e) {
+    ElMessage.closeAll()
+    const msg = deployError.value || e.reason || e.message || '部署失败'
+    ElMessage({ message: msg, type: 'error', duration: 8000 })
+  }
 }
 
 function handleClearAddresses() {
   clearAllContractData(Number(chainId.value), tokenAddress.value)
+  clearCache(Number(chainId.value), tokenAddress.value, account.value)
   resetDeploy()
   readData.value = {}
   txList.value = []
   clearPosts()
+  postList.value = []
+  localStorage.removeItem(`creatorcommunity_${chainId.value}_${tokenAddress.value}_posts`)
+  showTransfer.value = false
+  localStorage.removeItem(`showTransfer_${chainId.value}_${tokenAddress.value}`)
+}
+
+// 资产转移功能开关（按网络+合约地址持久化）
+const showTransfer = ref(false)
+function initTransferToggle() {
+  const key = `showTransfer_${chainId.value}_${tokenAddress.value}`
+  showTransfer.value = localStorage.getItem(key) === 'true'
+}
+function toggleTransfer() {
+  showTransfer.value = !showTransfer.value
+  const key = `showTransfer_${chainId.value}_${tokenAddress.value}`
+  localStorage.setItem(key, showTransfer.value)
 }
 
 const labelMap = {
@@ -106,11 +142,20 @@ async function refreshData() {
     const silverPrice = await n.silverPrice()
     const goldPrice = await n.goldPrice()
     const nftBalance = Number(await n.balanceOf(account.value))
-    const myRanks = await n.getNFTRankCountsByOwner(account.value)
 
     const postCD = getCooldownStatus(lastPost, postInterval * 1000)
     const commentCD = getCooldownStatus(lastComment, commentInterval * 1000)
     const pendingRewards = await t.getPendingRewards(account.value)
+
+    // NFT ID列表，与数量同源保证一致性
+    const nftIds = await n.getNFTsByOwner(account.value)
+    const bronze = [], silver = [], gold = []
+    for (const id of nftIds) {
+      const rank = Number(await n.nftRank(id))
+      if (rank === 0) bronze.push(Number(id))
+      else if (rank === 1) silver.push(Number(id))
+      else if (rank === 2) gold.push(Number(id))
+    }
 
     readData.value = {
       ctkBalance: formatTokenAmount(balance),
@@ -122,18 +167,24 @@ async function refreshData() {
       silverPrice: formatTokenAmount(silverPrice),
       goldPrice: formatTokenAmount(goldPrice),
       nftCount: nftBalance,
-      myBronze: Number(myRanks.bc),
-      mySilver: Number(myRanks.sc),
-      myGold: Number(myRanks.gc),
+      myBronze: bronze.length,
+      mySilver: silver.length,
+      myGold: gold.length,
+      // myNFTs: { bronze, silver, gold },
       pendingPostReward: formatTokenAmount(pendingRewards.post),
       pendingCommentReward: formatTokenAmount(pendingRewards.comment),
       pendingInitialReward: formatTokenAmount(pendingRewards.initial),
       pendingTotalReward: formatTokenAmount(pendingRewards.total)
     }
-    // 存入缓存
+
     saveCache(Number(chainId.value), tokenAddress.value, account.value, readData.value)
+    savePostsCache(Number(chainId.value), tokenAddress.value)
+    const parts = [`CTK: ${readData.value.ctkBalance} | 勋章: ${nftBalance} 枚`]
+    if (pendingRewards.total > 0n) parts.push(`| 待提现: ${formatTokenAmount(pendingRewards.total)} CTK`)
+    ElMessage({ message: parts.join(' '), type: 'success', duration: 3000 })
   } catch (e) {
     readError.value = e.message || String(e)
+    ElMessage({ message: `数据查询失败: ${readError.value}`, type: 'error', duration: 5000 })
   } finally {
     readLoading.value = false
   }
@@ -158,13 +209,21 @@ const fieldQueries = {
   silverPrice: async (t, n, addr) => ({ silverPrice: formatTokenAmount(await n.silverPrice()) }),
   goldPrice: async (t, n, addr) => ({ goldPrice: formatTokenAmount(await n.goldPrice()) }),
   nftCount: async (t, n, addr) => ({ nftCount: Number(await n.balanceOf(addr)) }),
-  myBronze: async (t, n, addr) => ({ myBronze: Number((await n.getNFTRankCountsByOwner(addr)).bc) }),
-  mySilver: async (t, n, addr) => ({ mySilver: Number((await n.getNFTRankCountsByOwner(addr)).sc) }),
-  myGold: async (t, n, addr) => ({ myGold: Number((await n.getNFTRankCountsByOwner(addr)).gc) }),
   pendingPostReward: async (t, n, addr) => ({ pendingPostReward: formatTokenAmount((await t.getPendingRewards(addr)).post) }),
   pendingCommentReward: async (t, n, addr) => ({ pendingCommentReward: formatTokenAmount((await t.getPendingRewards(addr)).comment) }),
   pendingInitialReward: async (t, n, addr) => ({ pendingInitialReward: formatTokenAmount((await t.getPendingRewards(addr)).initial) }),
-  pendingTotalReward: async (t, n, addr) => ({ pendingTotalReward: formatTokenAmount((await t.getPendingRewards(addr)).total) })
+  pendingTotalReward: async (t, n, addr) => ({ pendingTotalReward: formatTokenAmount((await t.getPendingRewards(addr)).total) }),
+  myNFTs: async (t, n, addr) => {
+    const nftIds = await n.getNFTsByOwner(addr)
+    const bronze = [], silver = [], gold = []
+    for (const id of nftIds) {
+      const rank = Number(await n.nftRank(id))
+      if (rank === 0) bronze.push(Number(id))
+      else if (rank === 1) silver.push(Number(id))
+      else if (rank === 2) gold.push(Number(id))
+    }
+    return { myBronze: bronze.length, mySilver: silver.length, myGold: gold.length, myNFTs: { bronze, silver, gold } }
+  }
 }
 
 async function refreshFields(keys) {
@@ -172,172 +231,189 @@ async function refreshFields(keys) {
   const t = tokenContractRead.value, n = nftContractRead.value, addr = account.value
   const updates = {}
   for (const key of keys) {
-    if (fieldQueries[key]) {
-      try {
-        Object.assign(updates, await fieldQueries[key](t, n, addr))
-      }
-      catch { /* ignore */ }
-    }
+    if (!fieldQueries[key]) continue
+    try { Object.assign(updates, await fieldQueries[key](t, n, addr)) } catch {}
   }
   if (Object.keys(updates).length) {
     Object.assign(readData.value, updates)
     saveCachePartial(Number(chainId.value), tokenAddress.value, addr, updates)
   }
+  await fetchPosts(t)
 }
 
-const writeResult = ref(null)
-const writeError = ref(null)
 const writeLoading = ref(false)
 
-function clearWrite() { writeResult.value = null; writeError.value = null }
+function notifyTxPending(label) {
+  const msg = ElMessage({ message: `${label} 处理中...`, type: 'warning', duration: 0 })
+  return msg
+}
+
+function notifyTxSuccess(hash, label) {
+  ElMessage.closeAll()
+  const txUrl = NETWORK_CONFIG.blockExplorer ? `${NETWORK_CONFIG.blockExplorer}/tx/${hash}` : '#'
+  ElMessage({
+    message: h('div', null, [
+      h('span', null, `${label || '交易'} 成功! `),
+      h('a', { href: txUrl, target: '_blank', class: 'tx-link' }, hash)
+    ]),
+    type: 'success',
+    duration: 6000,
+    showClose: true,
+    offset: 40
+  })
+}
+
+function notifyTxError(msg) {
+  ElMessage.closeAll()
+  ElMessage({ message: msg || '未知错误', type: 'error', duration: 5000 })
+}
 
 async function doWrite(fn, refreshKeys = null, txLabel = '') {
-  clearWrite()
   writeLoading.value = true
+  notifyTxPending(txLabel || '交易提交中...')
   try {
     const r = await tx.execute(fn)
     const hashStr = String(r.hash)
-    writeResult.value = `成功! Hash: ${hashStr}`
     if (txLabel && hashStr) {
       addTx(Number(chainId.value), tokenAddress.value, { hash: hashStr, label: txLabel, timestamp: Date.now() })
     }
     if (refreshKeys) await refreshFields(refreshKeys)
     else await refreshData()
+    notifyTxSuccess(hashStr, txLabel)
   } catch (e) {
-    writeError.value = tx.errorMessage.value || e.message || String(e)
+    const errMsg = tx.errorMessage.value || e.message || '交易失败'
+    notifyTxError(errMsg)
   } finally {
     writeLoading.value = false
   }
 }
 
 async function testClaimInitialReward() {
-  clearWrite()
-  if (await tokenContractRead.value.hasClaimedInitialReward(account.value)) { writeError.value = '已领取初始奖励'; return }
+  if (await tokenContractRead.value.hasClaimedInitialReward(account.value)) { notifyTxError('已领取初始奖励'); return }
   await doWrite(() => tokenContractWrite.value.claimInitialReward(), ['ctkBalance', 'hasClaimedInitial', 'pendingInitialReward', 'pendingTotalReward'], '领取初始奖励')
 }
 
 async function testRewardPost() {
-  clearWrite()
   const lastPost = Number(await tokenContractRead.value.lastPostTime(account.value))
   const interval = Number(await tokenContractRead.value.POST_INTERVAL())
-  if (Date.now() / 1000 - lastPost < interval) { writeError.value = '发帖冷却中，请稍后'; return }
-  await doWrite(() => tokenContractWrite.value.rewardPost(), ['ctkBalance', 'postCooldown', 'pendingPostReward', 'pendingTotalReward'], '发帖奖励')
+  if (Date.now() / 1000 - lastPost < interval) { notifyTxError('发帖冷却中，请稍后'); return }
+  await doWrite(() => tokenContractWrite.value.rewardPost(), ['ctkBalance', 'postCooldown', 'pendingPostReward', 'pendingTotalReward'], '发帖')
 }
 
 async function testRewardComment(author, postId) {
-  clearWrite()
   await doWrite(() => tokenContractWrite.value.rewardComment(author, postId), ['ctkBalance', 'commentCooldown', 'pendingCommentReward', 'pendingTotalReward'], `评论帖子 #${postId}`)
 }
 
 async function testMintBronze() {
-  clearWrite()
   if (await tokenContractRead.value.balanceOf(account.value) < await nftContractRead.value.bronzePrice()) {
-    writeError.value = `余额不足`; return
+    notifyTxError('CTK余额不足'); return
   }
-  await doWrite(() => nftContractWrite.value.mintBronzeNFT(), ['ctkBalance', 'nftCount', 'myBronze', 'nftBoost'], '铸造青铜勋章')
+  await doWrite(() => nftContractWrite.value.mintBronzeNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], '铸造青铜勋章')
 }
 
 async function testMintSilver() {
-  clearWrite()
   if (await tokenContractRead.value.balanceOf(account.value) < await nftContractRead.value.silverPrice()) {
-    writeError.value = `余额不足`; return
+    notifyTxError('CTK余额不足'); return
   }
-  await doWrite(() => nftContractWrite.value.mintSilverNFT(), ['ctkBalance', 'nftCount', 'mySilver', 'nftBoost'], '铸造白银勋章')
+  await doWrite(() => nftContractWrite.value.mintSilverNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], '铸造白银勋章')
 }
 
 async function testMintGold() {
-  clearWrite()
   if (await tokenContractRead.value.balanceOf(account.value) < await nftContractRead.value.goldPrice()) {
-    writeError.value = `余额不足`; return
+    notifyTxError('CTK余额不足'); return
   }
-  await doWrite(() => nftContractWrite.value.mintGoldNFT(), ['ctkBalance', 'nftCount', 'myGold', 'nftBoost'], '铸造黄金勋章')
+  await doWrite(() => nftContractWrite.value.mintGoldNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], '铸造黄金勋章')
 }
 
 async function testBurnNFT(tokenId) {
-  clearWrite()
   try {
     if ((await nftContractRead.value.ownerOf(tokenId)).toLowerCase() !== account.value.toLowerCase()) {
-      writeError.value = '您不是该勋章的所有者'; return
+      notifyTxError('您不是该勋章的所有者'); return
     }
-  } catch { writeError.value = '该tokenId不存在'; return }
-  await doWrite(() => nftContractWrite.value.burnNFTForRefund(tokenId), ['ctkBalance', 'nftCount', 'nftBoost'], `销毁勋章 #${tokenId}`)
+  } catch { notifyTxError('该tokenId不存在'); return }
+  try {
+    await ElMessageBox.confirm('销毁当前勋章，仅返回当前勋章价值的 80%', '确认销毁', {
+      confirmButtonText: '确认销毁',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+  } catch { return }
+  await doWrite(() => nftContractWrite.value.burnNFTForRefund(tokenId), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], `销毁勋章 #${tokenId}`)
 }
 
 async function testCTKTransfer(to, amount) {
-  clearWrite()
-  if (!to.value || !amount.value) { writeError.value = '请填写地址和金额'; return }
+  if (!to.value || !amount.value) { notifyTxError('请填写地址和金额'); return }
   const amt = ethers.parseUnits(amount.value, DECIMALS)
   await doWrite(() => tokenContractWrite.value.transfer(to.value, amt), ['ctkBalance'], 'CTK转账')
 }
 
 async function testNFTTransfer(to, tokenId) {
-  clearWrite()
-  if (!to.value) { writeError.value = '请填写接收地址'; return }
-  await doWrite(() => nftContractWrite.value.transferFrom(account.value, to.value, tokenId.value), ['nftCount', 'nftBoost'], `转移勋章 #${tokenId.value}`)
+  if (!to.value) { notifyTxError('请填写接收地址'); return }
+  await doWrite(() => nftContractWrite.value.transferFrom(account.value, to.value, tokenId.value), ['nftCount', 'nftBoost', 'myNFTs'], `转移勋章 #${tokenId.value}`)
 }
 
 async function testWithdrawPostRewards() {
-  clearWrite()
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).post) === 0) { writeError.value = '无待提现帖子奖励'; return }
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).post) === 0) { notifyTxError('无待提现帖子奖励'); return }
   await doWrite(() => tokenContractWrite.value.withdrawPostRewards(), ['ctkBalance', 'pendingPostReward', 'pendingTotalReward'], '提现帖奖')
 }
 
 async function testWithdrawCommentRewards() {
-  clearWrite()
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).comment) === 0) { writeError.value = '无待提现评论奖励'; return }
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).comment) === 0) { notifyTxError('无待提现评论奖励'); return }
   await doWrite(() => tokenContractWrite.value.withdrawCommentRewards(), ['ctkBalance', 'pendingCommentReward', 'pendingTotalReward'], '提现评奖')
 }
 
 async function testWithdrawInitialReward() {
-  clearWrite()
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).initial) === 0) { writeError.value = '无待提现初始奖励'; return }
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).initial) === 0) { notifyTxError('无待提现初始奖励'); return }
   await doWrite(() => tokenContractWrite.value.withdrawInitialReward(), ['ctkBalance', 'pendingInitialReward', 'pendingTotalReward'], '提现初始奖')
 }
 
 async function testWithdrawAllRewards() {
-  clearWrite()
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).total) === 0) { writeError.value = '无待提现奖励'; return }
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).total) === 0) { notifyTxError('无待提现奖励'); return }
   await doWrite(() => tokenContractWrite.value.withdrawAllRewards(), ['ctkBalance', 'pendingPostReward', 'pendingCommentReward', 'pendingInitialReward', 'pendingTotalReward'], '全部提现')
 }
 
 async function testSendCreatorReward(to, amount) {
-  clearWrite()
-  if (!to.value || !amount.value) { writeError.value = '请填写地址和金额'; return }
+  if (!to.value || !amount.value) { notifyTxError('请填写地址和金额'); return }
   await doWrite(() => tokenContractWrite.value.sendCreatorReward(to.value, ethers.parseUnits(amount.value, DECIMALS)), ['ctkBalance'], '创作者池发放')
 }
 
 async function testSendInteractReward(to, amount) {
-  clearWrite()
-  if (!to.value || !amount.value) { writeError.value = '请填写地址和金额'; return }
+  if (!to.value || !amount.value) { notifyTxError('请填写地址和金额'); return }
   await doWrite(() => tokenContractWrite.value.sendInteractReward(to.value, ethers.parseUnits(amount.value, DECIMALS)), ['ctkBalance'], '互动池发放')
 }
 
-async function testResetNFTPrice() { clearWrite(); await doWrite(() => nftContractWrite.value.resetNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], '重置勋章价格') }
-async function testRandomAdjustPrice() { clearWrite(); await doWrite(() => nftContractWrite.value.randomlyAdjustNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], '随机调价') }
-async function testNFTWithdrawCTK() { clearWrite(); await doWrite(() => nftContractWrite.value.withdrawCTK(), null, '提取溢出CTK') }
+async function testResetNFTPrice() { await doWrite(() => nftContractWrite.value.resetNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], '重置勋章价格') }
+async function testRandomAdjustPrice() { await doWrite(() => nftContractWrite.value.randomlyAdjustNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], '随机调价') }
+async function testNFTWithdrawCTK() { await doWrite(() => nftContractWrite.value.withdrawCTK(), null, '提取溢出CTK') }
 
-watch(canInteract, (val) => {
-  if (val) loadCache(Number(chainId.value), tokenAddress.value, account.value)
-}, { immediate: true })
-
-// 合约可用时：有缓存直接用缓存，无缓存才从链上拉取
+// 页面加载：优先读缓存，无缓存则全量刷新
 watch(canInteract, (val) => {
   if (val) {
-    if (hasCache.value && cachedData.value) {
-      readData.value = { ...cachedData.value }
+    initTransferToggle()
+    loadHistory(Number(chainId.value), tokenAddress.value)
+    // 帖子列表：先读缓存秒显示，再刷新区块链数据
+    const postCache = loadPostsCache(Number(chainId.value), tokenAddress.value)
+    if (postCache?.data?.length) {
+      postList.value = postCache.data
+    }
+    const cached = loadCache(Number(chainId.value), tokenAddress.value, account.value)
+    if (cached?.data) {
+      readData.value = cached.data
+      // 有缓存时也需刷新帖子（缓存中不包含帖子列表）
+      if (tokenContractRead.value) fetchPosts(tokenContractRead.value)
     } else {
       refreshData()
     }
   }
-})
+}, { immediate: true })
 
-// 账户切换时清除旧缓存、加载新缓存
+// 账户切换：清空状态，重新加载
 watch(account, (newAddr, oldAddr) => {
   if (newAddr && oldAddr && newAddr !== oldAddr) {
     readData.value = {}
-    loadCache(Number(chainId.value), tokenAddress.value, newAddr)
-    if (hasCache.value && cachedData.value) {
-      readData.value = { ...cachedData.value }
+    const cached = loadCache(Number(chainId.value), tokenAddress.value, newAddr)
+    if (cached?.data) {
+      readData.value = cached.data
     } else {
       refreshData()
     }
@@ -349,82 +425,76 @@ watch(account, (newAddr, oldAddr) => {
   <div class="app-page">
     <h1 class="app-title">CreatorCommunity 合约交互</h1>
 
-    <WalletSection
-      :is-connected="isConnected" :is-initializing="isInitializing"
-      :is-correct-network="isCorrectNetwork" :is-owner="isOwner"
-      :current-network="currentNetwork" :account="account" :error="error"
-      @connect="connect" @disconnect="disconnect" @switch-network="switchNetwork"
-    />
+    <div class="layout-grid">
+      <div class="left-col">
+        <WalletSection
+          :is-connected="isConnected" :is-initializing="isInitializing"
+          :is-correct-network="isCorrectNetwork" :is-owner="isOwner"
+          :current-network="currentNetwork" :account="account" :error="error"
+          @connect="connect" @disconnect="disconnect" @switch-network="switchNetwork"
+        />
 
-    <DeploySection
-      :is-connected="isConnected" :is-correct-network="isCorrectNetwork"
-      :has-addresses="hasAddresses" :deploy-status="deployStatus"
-      :deploy-error="deployError" :deployed-token-address="deployedTokenAddress"
-      :deployed-nft-address="deployedNftAddress"
-      :token-address="tokenAddress" :nft-address="nftAddress"
-      :block-explorer="NETWORK_CONFIG.blockExplorer"
-      @deploy="handleDeploy" @clear-addresses="handleClearAddresses"
-    />
-
-    <div v-if="canInteract" class="main-with-sidebar">
-      <div class="main-content">
-        <TxResultSection
-          v-if="writeResult || writeError || writeLoading"
-          :write-result="writeResult" :write-error="writeError"
-          :write-loading="writeLoading"
-          :tx-hash="tx.txHash ? String(tx.txHash) : ''"
-          :tx-loading="tx.isLoading"
+        <DeploySection
+          :is-connected="isConnected" :is-correct-network="isCorrectNetwork"
+          :has-addresses="hasAddresses" :deploy-status="deployStatus"
+          :deploy-error="deployError" :deployed-token-address="deployedTokenAddress"
+          :deployed-nft-address="deployedNftAddress"
+          :token-address="tokenAddress" :nft-address="nftAddress"
           :block-explorer="NETWORK_CONFIG.blockExplorer"
+          :show-transfer="showTransfer"
+          @deploy="handleDeploy" @clear-addresses="handleClearAddresses"
+          @toggle-transfer="toggleTransfer"
         />
 
-        <TxHistorySection
-          v-if="txList.length > 0"
-          :tx-list="txList"
-          :block-explorer="NETWORK_CONFIG.blockExplorer"
-          @clear="() => clearHistory(Number(chainId), tokenAddress)"
-        />
-
-        <div class="user-grid">
-          <RewardSection
-            :can-interact="canInteract" :write-loading="writeLoading"
-            :read-data="readData"
-            @claim-initial="testClaimInitialReward"
-            @withdraw-post="testWithdrawPostRewards"
-            @withdraw-comment="testWithdrawCommentRewards"
-            @withdraw-initial="testWithdrawInitialReward"
-            @withdraw-all="testWithdrawAllRewards"
+        <template v-if="canInteract">
+          <TxHistorySection
+            v-if="txList.length > 0"
+            :tx-list="txList"
+            :block-explorer="NETWORK_CONFIG.blockExplorer"
+            @clear="() => clearHistory(Number(chainId), tokenAddress)"
           />
 
-          <PostSection
-            :can-interact="canInteract" :write-loading="writeLoading"
-            :post-loading="postLoading" :post-list="postList"
-            :read-data="readData"
-            @reward-post="testRewardPost"
-            @reward-comment="testRewardComment"
-            @refresh-posts="() => fetchPosts(tokenContractRead)"
-          />
+          <div class="user-grid">
+            <RewardSection
+              :can-interact="canInteract" :write-loading="writeLoading"
+              :read-data="readData" :show-transfer="showTransfer"
+              @claim-initial="testClaimInitialReward"
+              @withdraw-post="testWithdrawPostRewards"
+              @withdraw-comment="testWithdrawCommentRewards"
+              @withdraw-initial="testWithdrawInitialReward"
+              @withdraw-all="testWithdrawAllRewards"
+              @ctk-transfer="testCTKTransfer"
+            />
 
-          <NFTSection
-            :can-interact="canInteract" :write-loading="writeLoading"
-            :read-data="readData"
-            @mint-bronze="testMintBronze" @mint-silver="testMintSilver"
-            @mint-gold="testMintGold" @burn-nft="testBurnNFT"
-          />
+            <PostSection
+              :can-interact="canInteract" :write-loading="writeLoading"
+              :post-loading="postLoading" :post-list="postList"
+              :read-data="readData"
+              @reward-post="testRewardPost"
+              @reward-comment="testRewardComment"
+              @refresh-posts="() => fetchPosts(tokenContractRead)"
+            />
 
-          <TransferSection
-            :can-interact="canInteract" :write-loading="writeLoading"
-            @ctk-transfer="testCTKTransfer" @nft-transfer="testNFTTransfer"
-          />
-        </div>
+            <NFTSection
+              :can-interact="canInteract" :write-loading="writeLoading"
+              :read-data="readData" :show-transfer="showTransfer"
+              @mint-bronze="testMintBronze" @mint-silver="testMintSilver"
+              @mint-gold="testMintGold" @burn-nft="testBurnNFT"
+              @nft-transfer="testNFTTransfer"
+            />
+          </div>
 
-        <AdminSection
-          v-if="isOwner && canInteract"
-          :can-interact="canInteract" :write-loading="writeLoading"
-          @send-creator="testSendCreatorReward"
-          @send-interact="testSendInteractReward"
-          @reset-price="testResetNFTPrice" @adjust-price="testRandomAdjustPrice"
-          @withdraw-ctk="testNFTWithdrawCTK"
-        />
+          <div style="margin-top: 20px">
+            <AdminSection
+                v-if="isOwner && canInteract"
+                :can-interact="canInteract" :write-loading="writeLoading"
+                @send-creator="testSendCreatorReward"
+                @send-interact="testSendInteractReward"
+                @reset-price="testResetNFTPrice" @adjust-price="testRandomAdjustPrice"
+                @withdraw-ctk="testNFTWithdrawCTK"
+            />
+          </div>
+        </template>
       </div>
 
       <aside class="sticky-sidebar">
@@ -452,15 +522,14 @@ watch(account, (newAddr, oldAddr) => {
   font-size: 24px;
 }
 
-/* 主布局：内容 + 固定右侧栏 */
-.main-with-sidebar {
+.layout-grid {
   display: grid;
   grid-template-columns: 1fr 320px;
   gap: 20px;
   align-items: flex-start;
 }
 
-.main-content {
+.left-col {
   min-width: 0;
 }
 
@@ -469,7 +538,6 @@ watch(account, (newAddr, oldAddr) => {
   top: 20px;
 }
 
-/* 用户功能区 2x2 网格 */
 .user-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -484,19 +552,18 @@ watch(account, (newAddr, oldAddr) => {
   --el-table-header-bg-color: #f0f8ff;
 }
 
-/* 平板 ≤1024px：用户区变单列，侧边栏保留 */
 @media (max-width: 1024px) {
   .user-grid { grid-template-columns: 1fr; }
 }
 
-/* 窄屏 ≤800px：取消侧边栏，全部单列 */
 @media (max-width: 800px) {
   .app-page { padding: 12px; }
-
-  .main-with-sidebar {
-    grid-template-columns: 1fr;
-  }
-
+  .layout-grid { grid-template-columns: 1fr; }
   .sticky-sidebar { position: static; }
 }
+</style>
+
+<style>
+.el-message .tx-link { color: #409eff; text-decoration: none; margin-left: 6px; font-size: 12px; word-break: break-all; }
+.el-message .tx-link:hover { text-decoration: underline; }
 </style>

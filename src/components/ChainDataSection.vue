@@ -21,14 +21,14 @@ const formattedRows = computed(() =>
 </script>
 
 <template>
-  <Card title="链上数据" icon="DataAnalysis">
+  <Card title="当前账户相关信息" icon="DataAnalysis">
     <el-button type="primary" size="small" :loading="readLoading" @click="emit('refresh')">
       <el-icon :class="{ isRotating: readLoading }"><Refresh /></el-icon>
       <span>{{ readLoading ? '加载中...' : '刷新数据' }}</span>
     </el-button>
     <el-text v-if="readError" type="danger" size="small">{{ readError }}</el-text>
     <el-table v-if="Object.keys(readData).length" :data="formattedRows" size="small" border style="margin-top: 12px;">
-      <el-table-column prop="label" label="字段" width="160" />
+      <el-table-column prop="label" label="属性" width="160" />
       <el-table-column prop="value" label="值" />
     </el-table>
   </Card>

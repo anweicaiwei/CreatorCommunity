@@ -23,18 +23,32 @@ defineSlots()
 
 <style scoped>
 .light-card {
-  --el-card-border-color: #e4f2fe;
   --el-card-header-padding: 16px 20px;
   --el-card-padding: 20px;
-  border: 1px solid #e4f2fe;
+  border: 1px solid #d0d7de;
   border-radius: 12px;
-  background: linear-gradient(135deg, #f0f8ff 0%, #ffffff 100%);
-  transition: box-shadow 0.3s, border-color 0.3s;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.light-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #409eff, #79b8ff);
+  opacity: 0.85;
 }
 
 .light-card:hover {
-  border-color: #b0d8ff;
-  box-shadow: 0 4px 16px rgba(176, 216, 255, 0.35);
+  border-color: #409eff;
+  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.18);
+  transform: translateY(-2px);
 }
 
 .card-header {

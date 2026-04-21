@@ -3,6 +3,29 @@ import { shortenAddress } from '@/utils/format'
 
 const posts = ref([])
 const loading = ref(false)
+const cacheLoaded = ref(false)
+
+function getCacheKey(chainId, tokenAddr) {
+  return `creatorcommunity_${chainId}_${tokenAddr}_posts`
+}
+
+function savePostsCache(chainId, tokenAddr) {
+  if (!chainId || !tokenAddr) return
+  const key = getCacheKey(chainId, tokenAddr)
+  try {
+    localStorage.setItem(key, JSON.stringify({ data: posts.value, ts: Date.now() }))
+  } catch {}
+}
+
+function loadPostsCache(chainId, tokenAddr) {
+  if (!chainId || !tokenAddr) return null
+  const key = getCacheKey(chainId, tokenAddr)
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return null
+}
 
 export function usePostList() {
   async function fetchPosts(tokenContractRead) {
@@ -35,5 +58,5 @@ export function usePostList() {
     posts.value = []
   }
 
-  return { posts, loading, fetchPosts, clearPosts }
+  return { posts, loading, cacheLoaded, fetchPosts, clearPosts, savePostsCache, loadPostsCache }
 }

@@ -1,12 +1,13 @@
 <script setup>
-import { computed } from 'vue'
-import { Wallet } from '@element-plus/icons-vue'
+import { computed, ref } from 'vue'
+import { Wallet, Promotion } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
 
 const props = defineProps({
   canInteract: Boolean,
   writeLoading: Boolean,
-  readData: Object
+  readData: Object,
+  showTransfer: Boolean
 })
 
 const emit = defineEmits([
@@ -14,8 +15,12 @@ const emit = defineEmits([
   'withdraw-post',
   'withdraw-comment',
   'withdraw-initial',
-  'withdraw-all'
+  'withdraw-all',
+  'ctk-transfer'
 ])
+
+const transferTo = ref('')
+const transferAmount = ref('')
 
 const rewardRows = computed(() => [
   { name: '帖子奖励', amount: `${props.readData.pendingPostReward || '0'} CTK`, event: 'withdraw-post' },
@@ -56,6 +61,18 @@ const rewardRows = computed(() => [
         </el-table>
       </template>
       <el-empty v-else description="刷新数据后查看待提现奖励" :image-size="40" />
+    </div>
+
+    <div v-if="showTransfer" class="action-group" style="margin-top: 16px;">
+      <h3>CTK 转账</h3>
+      <el-space wrap>
+        <el-input v-model="transferTo" placeholder="接收地址" size="small" style="width: 200px;" />
+        <el-input v-model="transferAmount" placeholder="金额 (CTK)" size="small" style="width: 140px;" />
+        <el-button type="primary" size="small" :disabled="!canInteract || writeLoading" @click="emit('ctk-transfer', transferTo, transferAmount)">
+          <el-icon><Promotion /></el-icon>
+          转账
+        </el-button>
+      </el-space>
     </div>
   </Card>
 </template>

@@ -1,7 +1,6 @@
 <script setup>
 import { EditPen, Refresh, ChatLineSquare } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
-import { computed } from 'vue'
 
 defineProps({
   canInteract: Boolean,
@@ -42,8 +41,8 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 
       <div v-for="post in postList" :key="post.postId" class="post-item">
         <el-space>
-          <el-tag size="small">#{{ post.postId }}</el-tag>
-          <el-text size="small">{{ post.authorShort }}</el-text>
+          <el-tag size="small">ID：{{ post.postId }}</el-tag>
+          <el-text size="small">帖子作者：{{ post.authorShort }}</el-text>
         </el-space>
         <el-button size="small" :disabled="!canInteract || writeLoading" @click="emit('reward-comment', post.author, post.postId)">
           <el-icon><ChatLineSquare /></el-icon>

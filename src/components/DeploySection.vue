@@ -1,5 +1,5 @@
 <script setup>
-import { CirclePlus, FolderDelete } from '@element-plus/icons-vue'
+import { CirclePlus, FolderDelete, Switch } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
 
 defineProps({
@@ -12,10 +12,11 @@ defineProps({
   deployedNftAddress: String,
   tokenAddress: String,
   nftAddress: String,
-  blockExplorer: String
+  blockExplorer: String,
+  showTransfer: Boolean
 })
 
-const emit = defineEmits(['deploy', 'clear-addresses'])
+const emit = defineEmits(['deploy', 'clear-addresses', 'toggle-transfer'])
 </script>
 
 <template>
@@ -58,6 +59,20 @@ const emit = defineEmits(['deploy', 'clear-addresses'])
         <el-icon><FolderDelete /></el-icon>
         停用当前合约
       </el-button>
+      <el-divider />
+      <div class="transfer-toggle">
+        <el-switch
+          :model-value="showTransfer"
+          @update:model-value="emit('toggle-transfer')"
+          inline-prompt
+          active-text="转移功能: 开"
+          inactive-text="转移功能: 关"
+          size="small"
+        />
+        <el-text size="small" type="info" style="margin-top: 4px; display: block;">
+          开启后，CTK 转账显示于奖励管理，勋章转移显示于勋章管理
+        </el-text>
+      </div>
     </div>
   </Card>
 
@@ -71,4 +86,6 @@ const emit = defineEmits(['deploy', 'clear-addresses'])
 <style scoped>
 .mono { font-family: monospace; word-break: break-all; }
 .deploy-prompt { display: flex; flex-direction: column; align-items: flex-start; }
+.deploy-info { display: flex; flex-direction: column; align-items: flex-start; }
+.transfer-toggle { width: 100%; margin-top: 8px; }
 </style>
