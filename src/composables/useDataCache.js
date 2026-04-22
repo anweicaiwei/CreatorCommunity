@@ -8,6 +8,10 @@ function getCacheKey(chainId, tokenAddr, accountAddr) {
   return `creatorcommunity_${chainId}_${tokenAddr}_${accountAddr}`
 }
 
+function getPoolCacheKey(chainId, tokenAddr) {
+  return `creatorcommunity_${chainId}_${tokenAddr}_pools`
+}
+
 function load(chainId, tokenAddr, accountAddr) {
   if (!chainId || !tokenAddr || !accountAddr) return null
   const key = getCacheKey(chainId, tokenAddr, accountAddr)
@@ -21,6 +25,24 @@ function load(chainId, tokenAddr, accountAddr) {
 function save(chainId, tokenAddr, accountAddr, data) {
   if (!chainId || !tokenAddr || !accountAddr || !data) return
   const key = getCacheKey(chainId, tokenAddr, accountAddr)
+  try {
+    localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }))
+  } catch {}
+}
+
+function loadPools(chainId, tokenAddr) {
+  if (!chainId || !tokenAddr) return null
+  const key = getPoolCacheKey(chainId, tokenAddr)
+  try {
+    const raw = localStorage.getItem(key)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return null
+}
+
+function savePools(chainId, tokenAddr, data) {
+  if (!chainId || !tokenAddr || !data) return
+  const key = getPoolCacheKey(chainId, tokenAddr)
   try {
     localStorage.setItem(key, JSON.stringify({ data, ts: Date.now() }))
   } catch {}
@@ -40,6 +62,12 @@ function clear(chainId, tokenAddr, accountAddr) {
   try { localStorage.removeItem(key) } catch {}
 }
 
+function clearPools(chainId, tokenAddr) {
+  if (!chainId || !tokenAddr) return
+  const key = getPoolCacheKey(chainId, tokenAddr)
+  try { localStorage.removeItem(key) } catch {}
+}
+
 const hasCache = computed(() => {
   // hasCache 由调用方根据 load 返回值判断
   return true
@@ -50,6 +78,9 @@ export function useDataCache() {
     load,
     save,
     savePartial,
-    clear
+    clear,
+    loadPools,
+    savePools,
+    clearPools
   }
 }

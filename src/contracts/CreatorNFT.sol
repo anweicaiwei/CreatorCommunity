@@ -46,7 +46,6 @@ contract CreatorNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentr
     event CTKWithdrawn(address indexed owner, uint256 amount);
     event CTKReceived(address indexed from, uint256 amount);
     event NFTPriceUpdated(NFTRank indexed rank, uint256 oldPrice, uint256 newPrice);
-    event OverflowHandled(uint256 overflowAmount, uint256 creatorPoolAmount, uint256 interactPoolAmount);
 
     constructor(address _creatorTokenAddress)
         ERC721("Creator Medal NFT", "CMN")
@@ -56,22 +55,6 @@ contract CreatorNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentr
         creatorToken = ICreatorToken(_creatorTokenAddress);
         ctkToken = IERC20(_creatorTokenAddress);
         _nextTokenId = 1;
-    }
-
-    // ========== 溢出处理 ==========
-
-    function checkAndHandleOverflow() internal {
-        uint256 balance = ctkToken.balanceOf(address(this));
-        if (balance > NFT_POOL_INITIAL) {
-            uint256 overflow = balance - NFT_POOL_INITIAL;
-            uint256 cpAmt = (overflow * CREATOR_POOL_RATIO) / 100;
-            uint256 ipAmt = overflow - cpAmt;
-            bool ok = ctkToken.transfer(address(creatorToken), overflow);
-            require(ok, "Transfer failed");
-            creatorToken.receiveFromNFTToCreatorPool(cpAmt);
-            creatorToken.receiveFromNFTToInteractPool(ipAmt);
-            emit OverflowHandled(overflow, cpAmt, ipAmt);
-        }
     }
 
     // ========== NFT铸造 ==========
@@ -91,7 +74,6 @@ contract CreatorNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentr
         userNFTRankCount[msg.sender][rank]++;
         withdrawalThreshold += (price * 80) / 100;
         emit NFTMinted(msg.sender, tokenId, rank);
-        checkAndHandleOverflow();
     }
 
     // ========== NFT销毁返还80% ==========
@@ -121,18 +103,37 @@ contract CreatorNFT is ERC721, ERC721Enumerable, ERC721Burnable, Ownable, Reentr
 
     // ========== CTK提取（管理员） ==========
 
-    function withdrawCTK() external onlyOwner nonReentrant {
+    // 提取指定金额（须在可提取范围内）
+    function withdrawCTK(uint256 amount) external onlyOwner nonReentrant {
+        require(amount > 0, "Amount must > 0");
         uint256 balance = ctkToken.balanceOf(address(this));
-        require(balance > 0, "No CTK");
         uint256 threshold = withdrawalThreshold > MIN_BALANCE_THRESHOLD ? withdrawalThreshold : MIN_BALANCE_THRESHOLD;
-        require(balance > threshold, "Below threshold");
-        uint256 withdrawable = balance - threshold;
-        uint256 cpAmt = (withdrawable * CREATOR_POOL_RATIO) / 100;
-        bool ok = ctkToken.transfer(address(creatorToken), withdrawable);
+        require(balance - threshold >= amount, "Exceeds withdrawable");
+        _doWithdraw(amount);
+    }
+
+    // 提取全部可提取余额
+    function withdrawAllCTK() external onlyOwner nonReentrant {
+        uint256 balance = ctkToken.balanceOf(address(this));
+        uint256 threshold = withdrawalThreshold > MIN_BALANCE_THRESHOLD ? withdrawalThreshold : MIN_BALANCE_THRESHOLD;
+        require(balance > threshold, "Nothing withdrawable");
+        _doWithdraw(balance - threshold);
+    }
+
+    // 提取超出初始NFT池的部分（用于回收部署时注入的初始资金）
+    function withdrawOverflow() external onlyOwner nonReentrant {
+        uint256 balance = ctkToken.balanceOf(address(this));
+        require(balance > NFT_POOL_INITIAL, "No overflow");
+        _doWithdraw(balance - NFT_POOL_INITIAL);
+    }
+
+    function _doWithdraw(uint256 amount) internal {
+        uint256 cpAmt = (amount * CREATOR_POOL_RATIO) / 100;
+        bool ok = ctkToken.transfer(address(creatorToken), amount);
         require(ok, "Transfer failed");
         creatorToken.receiveFromNFTToCreatorPool(cpAmt);
-        creatorToken.receiveFromNFTToInteractPool(withdrawable - cpAmt);
-        emit CTKWithdrawn(owner(), withdrawable);
+        creatorToken.receiveFromNFTToInteractPool(amount - cpAmt);
+        emit CTKWithdrawn(owner(), amount);
     }
 
     // ========== NFT转移 ==========
