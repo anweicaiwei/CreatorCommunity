@@ -8,6 +8,10 @@ import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/CreatorCommunity',
+  server: {
+    historyApiFallback: true
+  },
   plugins: [
     vue(),
     AutoImport({

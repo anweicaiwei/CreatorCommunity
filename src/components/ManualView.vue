@@ -1,15 +1,17 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { marked } from 'marked'
 import { ArrowLeft } from '@element-plus/icons-vue'
 
+const router = useRouter()
 const htmlContent = ref('')
 const loading = ref(true)
 const error = ref(null)
 
 onMounted(async () => {
   try {
-    const res = await fetch('/user-manual.md')
+    const res = await fetch('/CreatorCommunity/user-manual.md')
     if (!res.ok) throw new Error(`加载失败 (${res.status})`)
     const md = await res.text()
 
@@ -27,7 +29,7 @@ onMounted(async () => {
 })
 
 function goBack() {
-  window.location.hash = ''
+  router.replace('/CreatorCommunity')
 }
 </script>
 

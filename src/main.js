@@ -4,5 +4,6 @@ import 'element-plus/theme-chalk/el-message-box.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
+import { router } from './router'
 
-createApp(App).mount('#app')
+createApp(App).use(router).mount('#app')

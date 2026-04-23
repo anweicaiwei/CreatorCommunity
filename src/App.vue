@@ -1,7 +1,6 @@
 <script setup>
-import { ref, computed, watch, h, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, h, provide, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { QuestionFilled, Loading } from '@element-plus/icons-vue'
 import { useWallet } from '@/composables/useWallet'
 import { useTransaction } from '@/composables/useTransaction'
 import { useContractAddress } from '@/composables/useContractAddress'
@@ -11,36 +10,6 @@ import { formatTokenAmount, formatCooldown, getCooldownStatus, shortenAddress } 
 import { DECIMALS } from '@/utils/constants'
 import { NETWORK_CONFIG } from '@/contracts'
 import { ethers } from 'ethers'
-
-import WalletSection from '@/components/WalletSection.vue'
-import DeploySection from '@/components/DeploySection.vue'
-import ChainDataSection from '@/components/ChainDataSection.vue'
-import TxHistorySection from '@/components/TxHistorySection.vue'
-import RewardSection from '@/components/RewardSection.vue'
-import PostSection from '@/components/PostSection.vue'
-import NFTSection from '@/components/NFTSection.vue'
-import AdminSection from '@/components/AdminSection.vue'
-import ManualView from '@/components/ManualView.vue'
-
-const isManualPage = ref(window.location.hash === '#/manual')
-
-function onHashChange() {
-  isManualPage.value = window.location.hash === '#/manual'
-}
-
-onMounted(async () => {
-  window.addEventListener('hashchange', onHashChange)
-  // 尝试自动恢复钱包连接
-  await initAutoConnect()
-})
-onBeforeUnmount(() => {
-  window.removeEventListener('hashchange', onHashChange)
-  stopCooldownTimer()
-})
-
-function navigateToManual() {
-  window.location.hash = '#/manual'
-}
 
 const wallet = useWallet()
 const {
@@ -903,270 +872,89 @@ watch(account, (newAddr, oldAddr) => {
     }
   }
 })
+
+onMounted(async () => {
+  await initAutoConnect()
+})
+
+provide('readData', readData)
+provide('readError', readError)
+provide('readLoading', readLoading)
+provide('labelMap', labelMap)
+provide('canInteract', canInteract)
+provide('writeLoading', writeLoading)
+provide('isConnected', isConnected)
+provide('isOwner', isOwner)
+provide('postLoading', postLoading)
+provide('posts', posts)
+provide('poolData', poolData)
+provide('txList', txList)
+provide('dataLoadingProgress', dataLoadingProgress)
+provide('blockExplorer', NETWORK_CONFIG.blockExplorer)
+provide('showTransfer', showTransfer)
+provide('tokenContractRead', tokenContractRead)
+provide('nftContractRead', nftContractRead)
+provide('isDataLoaded', isDataLoaded)
+provide('currentNetwork', wallet.currentNetwork)
+provide('account', account)
+provide('chainId', chainId)
+provide('error', error)
+provide('hasAddresses', hasAddresses)
+provide('deployStatus', deployStatus)
+provide('deployError', deployError)
+provide('deployedTokenAddress', deployedTokenAddress)
+provide('deployedNftAddress', deployedNftAddress)
+provide('tokenAddress', tokenAddress)
+provide('nftAddress', nftAddress)
+provide('isInitializing', isInitializing)
+provide('isCorrectNetwork', isCorrectNetwork)
+provide('emit', (event, ...args) => {
+  const handlers = {
+    'refresh-data': refreshData,
+    'clear-tx': () => { clearTxHistory(); saveStore(Number(chainId.value), tokenAddress.value) },
+    'claim-initial': testClaimInitialReward,
+    'withdraw-post': testWithdrawPostRewards,
+    'withdraw-comment': testWithdrawCommentRewards,
+    'withdraw-initial': testWithdrawInitialReward,
+    'withdraw-all': testWithdrawAllRewards,
+    'ctk-transfer': testCTKTransfer,
+    'reward-post': testRewardPost,
+    'reward-comment': testRewardComment,
+    'refresh-posts': fetchPosts,
+    'mint-bronze': testMintBronze,
+    'mint-silver': testMintSilver,
+    'mint-gold': testMintGold,
+    'burn-nft': testBurnNFT,
+    'nft-transfer': testNFTTransfer,
+    'send-creator': testSendCreatorReward,
+    'send-interact': testSendInteractReward,
+    'reset-price': testResetNFTPrice,
+    'adjust-price': testRandomAdjustPrice,
+    'withdraw-ctk': testNFTWithdrawCTK,
+    'withdraw-all-ctk': testNFTWithdrawAllCTK,
+    'withdraw-overflow': testNFTWithdrawOverflow,
+    'refresh-pools': refreshPools,
+    'connect': connect,
+    'disconnect': disconnect,
+    'switch-network': switchNetwork,
+    'deploy': handleDeploy,
+    'clear-addresses': handleClearAddresses,
+    'toggle-transfer': toggleTransfer
+  }
+  if (handlers[event]) handlers[event](...args)
+})
 </script>
 
 <template>
-  <ManualView v-if="isManualPage" />
-
-  <div v-else class="app-page">
-    <div class="app-header">
-      <h1 class="app-title">CreatorCommunity 合约交互</h1>
-      <a class="manual-link" @click.prevent="navigateToManual" href="#/manual">
-        <el-icon><QuestionFilled /></el-icon>
-        <span>用户手册</span>
-      </a>
-    </div>
-
-    <div class="layout-grid">
-      <div class="left-col">
-        <WalletSection
-          :is-connected="isConnected" :is-initializing="isInitializing"
-          :is-correct-network="isCorrectNetwork" :is-owner="isOwner"
-           :current-network="currentNetwork" :account="account" :chain-id="chainId" :error="error"
-          :has-addresses="hasAddresses" :deploy-status="deployStatus"
-          :deploy-error="deployError" :deployed-token-address="deployedTokenAddress"
-          :deployed-nft-address="deployedNftAddress"
-          :token-address="tokenAddress" :nft-address="nftAddress"
-          :block-explorer="NETWORK_CONFIG.blockExplorer"
-          :show-transfer="showTransfer"
-          @connect="connect" @disconnect="disconnect" @switch-network="switchNetwork"
-          @deploy="handleDeploy" @clear-addresses="handleClearAddresses"
-          @toggle-transfer="toggleTransfer"
-        />
-        <template v-if="isConnected && !isDataLoaded">
-          <div class="loading-state">
-            <el-icon class="loading-icon" :size="32"><Loading /></el-icon>
-            <span>{{ dataLoadingProgress || '正在加载...' }}</span>
-          </div>
-        </template>
-
-        <template v-if="isDataLoaded && canInteract">
-          <div class="user-grid">
-            <RewardSection
-              :can-interact="canInteract" :write-loading="writeLoading"
-              :read-data="readData" :show-transfer="showTransfer"
-              @claim-initial="testClaimInitialReward"
-              @withdraw-post="testWithdrawPostRewards"
-              @withdraw-comment="testWithdrawCommentRewards"
-              @withdraw-initial="testWithdrawInitialReward"
-              @withdraw-all="testWithdrawAllRewards"
-              @ctk-transfer="testCTKTransfer"
-            />
-
-            <PostSection
-              :can-interact="canInteract" :write-loading="writeLoading"
-              :post-loading="postLoading" :post-list="posts"
-              :read-data="readData"
-              @reward-post="testRewardPost"
-              @reward-comment="testRewardComment"
-              @refresh-posts="fetchPosts"
-            />
-          </div>
-
-          <NFTSection
-            :can-interact="canInteract" :write-loading="writeLoading"
-            :read-data="readData" :show-transfer="showTransfer"
-            @mint-bronze="testMintBronze" @mint-silver="testMintSilver"
-            @mint-gold="testMintGold" @burn-nft="testBurnNFT"
-            @nft-transfer="testNFTTransfer"
-          />
-
-          <div class="admin-wrapper">
-            <AdminSection
-                v-if="isOwner && canInteract"
-                :can-interact="canInteract" :write-loading="writeLoading"
-                :token-contract-read="tokenContractRead"
-                :nft-contract-read="nftContractRead"
-                :pool-data="poolData"
-                @send-creator="testSendCreatorReward"
-                @send-interact="testSendInteractReward"
-                @reset-price="testResetNFTPrice" @adjust-price="testRandomAdjustPrice"
-                @withdraw-ctk="testNFTWithdrawCTK"
-                @withdraw-all-ctk="testNFTWithdrawAllCTK"
-                @withdraw-overflow="testNFTWithdrawOverflow"
-                @refresh-pools="refreshPools"
-            />
-          </div>
-        </template>
-      </div>
-
-      <aside class="sticky-sidebar">
-        <ChainDataSection
-          :read-data="readData" :read-error="readError"
-          :read-loading="readLoading" :label-map="labelMap"
-          :is-wallet-connected="isConnected"
-          @refresh="refreshData"
-        />
-        <TxHistorySection
-            :tx-list="txList"
-            :block-explorer="NETWORK_CONFIG.blockExplorer"
-            @clear="() => { clearTxHistory(); saveStore(Number(chainId), tokenAddress) }"
-          />
-      </aside>
-    </div>
-  </div>
+  <router-view />
 </template>
 
-<style scoped>
-.app-page {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 24px;
+<style>
+.el-scrollbar__thumb {
+  background-color: rgba(99, 102, 241, 0.25) !important;
 }
-
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  padding: 16px 24px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
-  border: 1px solid rgba(99, 102, 241, 0.12);
-  border-radius: 14px;
-}
-
-.app-title {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.manual-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #6366f1;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 8px 16px;
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 8px;
-  background: rgba(99, 102, 241, 0.06);
-  transition: all 0.2s ease;
-}
-
-.manual-link:hover {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  border-color: transparent;
-  color: #fff;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
-}
-
-.layout-grid {
-  display: grid;
-  grid-template-columns: 1fr 0.5fr;
-  gap: 20px;
-  align-items: flex-start;
-  position: relative;
-}
-
-.left-col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  min-width: 0;
-  position: relative;
-}
-
-.sticky-sidebar {
-  position: sticky;
-  top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  height: calc(100vh - 40px);
-  overflow: hidden;
-}
-
-.sticky-sidebar > :deep(.el-card) {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  margin-bottom: 0;
-}
-
-.sticky-sidebar > :deep(.el-card .el-card__body) {
-  flex: 1 1 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.sticky-sidebar > :deep(.el-card .card-body) {
-  flex: 1 1 0;
-  min-height: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: #666;
-  font-size: 14px;
-}
-
-.loading-state .loading-icon {
-  margin-bottom: 16px;
-  color: #409eff;
-  animation: rotate 1s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.user-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  align-items: stretch;
-}
-
-.user-grid > :deep(.el-card) {
-  display: flex;
-  flex-direction: column;
-}
-
-:deep(.el-card) { margin-bottom: 20px; }
-:deep(.el-card:last-child) { margin-bottom: 0; }
-:deep(.el-descriptions__label) { color: #4a6b8a; font-weight: 500; }
-
-.admin-wrapper {
-  margin-top: 20px;
-}
-:deep(.el-table) {
-  --el-table-border-color: #e4f2fe;
-  --el-table-header-bg-color: #f0f8ff;
-}
-
-@media (max-width: 1024px) {
-  .user-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 800px) {
-  .app-page { padding: 12px; }
-  .layout-grid { grid-template-columns: 1fr; }
-  .sticky-sidebar { position: static; height: auto; }
-  .sticky-sidebar > :deep(.el-card) { flex: none; }
-  .sticky-sidebar > :deep(.el-card .card-body) { overflow: visible; }
+.el-scrollbar__thumb:hover {
+  background-color: rgba(99, 102, 241, 0.4) !important;
 }
 </style>
 
