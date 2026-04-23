@@ -74,7 +74,7 @@ function goBack() {
 .manual-title {
   margin: 0;
   font-size: 24px;
-  color: #2c5282;
+  color: #1e1b4b;
 }
 
 .manual-card {
@@ -107,7 +107,7 @@ function goBack() {
 
 .manual-content :deep(h2) {
   font-size: 22px;
-  color: #2c5282;
+  color: #1e1b4b;
   margin-top: 32px;
   margin-bottom: 12px;
 }
@@ -131,7 +131,7 @@ function goBack() {
 }
 
 .manual-content :deep(a) {
-  color: #409eff;
+  color: #6366f1;
   text-decoration: none;
 }
 
@@ -205,7 +205,7 @@ function goBack() {
 }
 
 .manual-content :deep(blockquote) {
-  border-left: 4px solid #409eff;
+  border-left: 4px solid #6366f1;
   margin: 12px 0;
   padding: 8px 16px;
   background: #f0f4f8;

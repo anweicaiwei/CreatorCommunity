@@ -28,6 +28,39 @@ const contractsReady = computed(() =>
 
 const { tokenAddress, nftAddress, loadAddresses, saveChainId, clearAddresses } = useContractAddress()
 
+// 自动恢复连接 - 页面刷新时检查已授权的账户
+async function initAutoConnect() {
+  if (!window.ethereum) return false
+  
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+    if (accounts.length === 0) return false
+    
+    isInitializing.value = true
+    error.value = null
+    
+    const browserProvider = new ethers.BrowserProvider(window.ethereum)
+    const network = await browserProvider.getNetwork()
+    const userSigner = await browserProvider.getSigner()
+    
+    account.value = accounts[0]
+    chainId.value = Number(network.chainId)
+    provider.value = browserProvider
+    signer.value = userSigner
+    
+    saveChainId(Number(network.chainId))
+    loadAddresses(Number(network.chainId))
+    
+    return true
+  } catch (e) {
+    console.error('Auto connect failed:', e)
+    error.value = `自动恢复连接失败: ${e.message}`
+    return false
+  } finally {
+    isInitializing.value = false
+  }
+}
+
 function createContractInstances() {
   const contracts = getContracts()
   const tokenAddr = contracts.CreatorToken.address
@@ -205,6 +238,7 @@ export function useWallet() {
     nftContractWrite,
     connect,
     disconnect,
-    switchNetwork
+    switchNetwork,
+    initAutoConnect
   }
 }

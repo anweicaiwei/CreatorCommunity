@@ -45,5 +45,5 @@ const nftTransferTokenId = ref(0)
 </template>
 
 <style scoped>
-.action-group h3 { margin: 0 0 8px 0; font-size: 14px; color: #2c5282; }
+.action-group h3 { margin: 0 0 8px 0; font-size: 14px; color: #1e1b4b; }
 </style>

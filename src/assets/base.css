@@ -1,41 +1,78 @@
-/* color palette from <https://github.com/vuejs/theme> */
+/* Web3 科技感主题色 - 深蓝/紫色系 */
 :root {
+  /* 主色调 - 深蓝/紫色 */
+  --vt-c-primary: #6366f1;
+  --vt-c-primary-soft: #818cf8;
+  --vt-c-primary-mute: #a5b4fc;
+  
+  --vt-c-secondary: #8b5cf6;
+  --vt-c-secondary-soft: #a78bfa;
+  --vt-c-secondary-mute: #c4b5fd;
+
+  /* 白色系 */
   --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  --vt-c-white-soft: #f8fafc;
+  --vt-c-white-mute: #f1f5f9;
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  /* 黑色系 */
+  --vt-c-black: #0f172a;
+  --vt-c-black-soft: #1e293b;
+  --vt-c-black-mute: #334155;
 
-  --vt-c-indigo: #2c3e50;
+  /* 强调色 - 青色/蓝绿色 */
+  --vt-c-accent: #06b6d4;
+  --vt-c-accent-soft: #22d3ee;
+  --vt-c-accent-mute: #67e8f9;
 
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+  /* 成功/警告/危险色 */
+  --vt-c-success: #10b981;
+  --vt-c-warning: #f59e0b;
+  --vt-c-danger: #ef4444;
 
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
+  /* 分割线 */
+  --vt-c-divider-light-1: rgba(99, 102, 241, 0.29);
+  --vt-c-divider-light-2: rgba(99, 102, 241, 0.12);
+  --vt-c-divider-dark-1: rgba(167, 139, 250, 0.65);
+  --vt-c-divider-dark-2: rgba(167, 139, 250, 0.48);
+
+  /* 文本色 */
+  --vt-c-text-light-1: var(--vt-c-black);
+  --vt-c-text-light-2: rgba(15, 23, 42, 0.66);
   --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
+  --vt-c-text-dark-2: rgba(241, 245, 249, 0.64);
 }
 
 /* semantic color variables for this project */
 :root {
+  /* 背景色 - 浅色模式 */
   --color-background: var(--vt-c-white);
   --color-background-soft: var(--vt-c-white-soft);
   --color-background-mute: var(--vt-c-white-mute);
 
+  /* 边框色 */
   --color-border: var(--vt-c-divider-light-2);
   --color-border-hover: var(--vt-c-divider-light-1);
 
-  --color-heading: var(--vt-c-text-light-1);
+  /* 标题和文本 */
+  --color-heading: var(--vt-c-primary);
   --color-text: var(--vt-c-text-light-1);
 
+  /* 主色调变量 */
+  --color-primary: var(--vt-c-primary);
+  --color-primary-hover: var(--vt-c-primary-soft);
+  --color-secondary: var(--vt-c-secondary);
+  --color-accent: var(--vt-c-accent);
+
+  /* 功能色 */
+  --color-success: var(--vt-c-success);
+  --color-warning: var(--vt-c-warning);
+  --color-danger: var(--vt-c-danger);
+
+  /* 间距 */
   --section-gap: 160px;
 }
 
+/* 深色模式 */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
@@ -45,8 +82,10 @@
     --color-border: var(--vt-c-divider-dark-2);
     --color-border-hover: var(--vt-c-divider-dark-1);
 
-    --color-heading: var(--vt-c-text-dark-1);
+    --color-heading: var(--vt-c-primary-soft);
     --color-text: var(--vt-c-text-dark-2);
+    --color-primary: var(--vt-c-primary-soft);
+    --color-primary-hover: var(--vt-c-primary-mute);
   }
 }
 
@@ -62,9 +101,7 @@ body {
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+  transition: color 0.5s, background-color 0.5s;
   line-height: 1.6;
   font-family:
     Inter,
@@ -83,4 +120,30 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background-mute);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-hover);
+}
+
+/* 全局选择颜色 */
+::selection {
+  background: var(--vt-c-primary-mute);
+  color: var(--vt-c-black);
 }

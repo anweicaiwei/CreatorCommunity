@@ -1,37 +1,86 @@
 <script setup>
-defineProps({
+import {
+  Wallet,
+  List,
+  Switch,
+  Coin,
+  ChatDotRound,
+  Medal,
+  DataAnalysis,
+  Setting,
+  Refresh
+} from '@element-plus/icons-vue'
+
+const props = defineProps({
   title: { type: String, default: '' },
-  icon: { type: String, default: '' }
+  icon: { type: String, default: '' },
+  refreshBtn: { type: Boolean, default: false },
+  refreshLoading: { type: Boolean, default: false }
 })
+
+const emit = defineEmits(['refresh'])
+
+// 图标名称到组件的映射
+const iconMap = {
+  Wallet,
+  List,
+  Switch,
+  Coin,
+  ChatDotRound,
+  Medal,
+  DataAnalysis,
+  Setting,
+  Refresh
+}
 
 defineSlots()
 </script>
 
 <template>
   <el-card class="light-card" shadow="hover">
-    <template v-if="title" #header>
+    <template #header>
       <div class="card-header">
-        <el-icon v-if="icon" class="card-icon">
-          <component :is="icon" />
-        </el-icon>
-        <span class="card-title">{{ title }}</span>
+        <div class="card-header-left">
+          <el-icon v-if="icon && iconMap[icon]" class="card-icon">
+            <component :is="iconMap[icon]" />
+          </el-icon>
+          <span class="card-title">{{ title }}</span>
+        </div>
+        <div class="card-header-right">
+          <el-button
+            v-if="refreshBtn"
+            type="primary"
+            size="small"
+            :loading="refreshLoading"
+            @click="emit('refresh')"
+            class="card-refresh-btn"
+          >
+            <span>刷新</span>
+          </el-button>
+        </div>
       </div>
     </template>
-    <slot />
+    <div class="card-body">
+      <slot />
+    </div>
   </el-card>
 </template>
 
 <style scoped>
 .light-card {
-  --el-card-header-padding: 16px 20px;
+  --el-card-header-padding: 14px 20px;
   --el-card-padding: 20px;
-  border: 1px solid #d0d7de;
+  border: 1px solid rgba(99, 102, 241, 0.15);
   border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background: #f8fafc;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06);
   transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
   position: relative;
-  overflow: hidden;
+  z-index: 0;
+  height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .light-card::before {
@@ -41,30 +90,61 @@ defineSlots()
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #409eff, #79b8ff);
-  opacity: 0.85;
+  background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+  opacity: 0.9;
+  border-radius: 12px 12px 0 0;
 }
 
 .light-card:hover {
-  border-color: #409eff;
-  box-shadow: 0 6px 20px rgba(64, 158, 255, 0.18);
+  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
   transform: translateY(-2px);
 }
 
 .card-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header-right {
+  display: flex;
+  align-items: center;
 }
 
 .card-icon {
   font-size: 20px;
-  color: #409eff;
+  color: #6366f1;
 }
 
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #2c5282;
+  color: #1e1b4b;
+}
+
+.card-refresh-btn {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  border: none;
+  color: #fff;
+  font-weight: 500;
+  padding: 8px 12px;
+}
+
+.card-refresh-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+}
+
+.card-refresh-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>

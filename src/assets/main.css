@@ -1,7 +1,7 @@
 @import './base.css';
 
 body {
-  background: linear-gradient(135deg, #e8f4fd 0%, #f5f9ff 50%, #ffffff 100%);
+  background: linear-gradient(135deg, #eef2ff 0%, #e0e7ff 30%, #c7d2fe 70%, #ddd6fe 100%);
   min-height: 100vh;
 }
 
@@ -12,16 +12,128 @@ body {
   font-weight: normal;
 }
 
+/* 全局链接样式 - 使用主题紫色 */
 a,
 .green {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
+  color: var(--vt-c-primary);
+  transition: 0.3s;
   padding: 3px;
 }
 
 @media (hover: hover) {
   a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
+    color: var(--vt-c-primary-soft);
+    background-color: rgba(99, 102, 241, 0.1);
+    border-radius: 4px;
   }
+}
+
+/* 全局标题样式 */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--vt-c-primary);
+  font-weight: 600;
+}
+
+/* 全局按钮主题色覆盖 */
+.el-button--primary {
+  --el-button-bg-color: var(--vt-c-primary);
+  --el-button-border-color: var(--vt-c-primary);
+  --el-button-hover-bg-color: var(--vt-c-primary-soft);
+  --el-button-hover-border-color: var(--vt-c-primary-soft);
+  --el-button-active-bg-color: var(--vt-c-secondary);
+  --el-button-active-border-color: var(--vt-c-secondary);
+}
+
+.el-button--success {
+  --el-button-bg-color: var(--vt-c-success);
+  --el-button-border-color: var(--vt-c-success);
+}
+
+.el-button--warning {
+  --el-button-bg-color: var(--vt-c-warning);
+  --el-button-border-color: var(--vt-c-warning);
+}
+
+.el-button--danger {
+  --el-button-bg-color: var(--vt-c-danger);
+  --el-button-border-color: var(--vt-c-danger);
+}
+
+/* 全局标签主题色覆盖 */
+.el-tag--primary {
+  --el-tag-bg-color: var(--vt-c-primary);
+  --el-tag-border-color: var(--vt-c-primary);
+  --el-tag-text-color: #fff;
+}
+
+.el-tag--success {
+  --el-tag-bg-color: var(--vt-c-success);
+  --el-tag-border-color: var(--vt-c-success);
+  --el-tag-text-color: #fff;
+}
+
+.el-tag--warning {
+  --el-tag-bg-color: var(--vt-c-warning);
+  --el-tag-border-color: var(--vt-c-warning);
+  --el-tag-text-color: #fff;
+}
+
+.el-tag--danger {
+  --el-tag-bg-color: var(--vt-c-danger);
+  --el-tag-border-color: var(--vt-c-danger);
+  --el-tag-text-color: #fff;
+}
+
+.el-tag--info {
+  --el-tag-bg-color: var(--vt-c-accent);
+  --el-tag-border-color: var(--vt-c-accent);
+  --el-tag-text-color: #fff;
+}
+
+/* 输入框聚焦主题色 */
+.el-input__wrapper:focus-within {
+  box-shadow: 0 0 0 1px var(--vt-c-primary) inset;
+}
+
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--vt-c-primary) inset;
+}
+
+/* 卡片样式优化 */
+.el-card {
+  --el-card-border-color: rgba(99, 102, 241, 0.2);
+  border-radius: 12px;
+}
+
+/* 全局消息提示主题色 */
+.el-message {
+  border-color: var(--vt-c-primary);
+}
+
+.el-message--success {
+  --el-message-bg-color: rgba(16, 185, 129, 0.1);
+  --el-message-border-color: var(--vt-c-success);
+}
+
+.el-message--warning {
+  --el-message-bg-color: rgba(245, 158, 11, 0.1);
+  --el-message-border-color: var(--vt-c-warning);
+}
+
+.el-message--error {
+  --el-message-bg-color: rgba(239, 68, 68, 0.1);
+  --el-message-border-color: var(--vt-c-danger);
+}
+
+/* 交易链接样式 */
+.tx-link {
+  color: var(--vt-c-accent);
+  font-family: monospace;
+  word-break: break-all;
+}
+
+.tx-link:hover {
+  color: var(--vt-c-accent-soft);
+  text-decoration: underline;
 }

@@ -1,4 +1,4 @@
-import { ref, computed, shallowRef } from 'vue'
+import { ref, computed, shallowRef, triggerRef } from 'vue'
 
 /**
  * 统一数据存储 - 所有数据使用同一缓存 key，按类型分区存储
@@ -13,9 +13,17 @@ function getCacheKey(chainId, tokenAddr) {
 // 内存缓存（跨组件共享）
 const store = shallowRef({})
 
+// 交易历史使用独立的响应式引用，确保 UI 能自动更新
+const txHistoryRef = ref([])
+
+function refreshTxHistory() {
+  txHistoryRef.value = [...(store.value.txHistory || [])]
+}
+
 function loadStore(chainId, tokenAddr) {
   if (!chainId || !tokenAddr) {
     store.value = {}
+    refreshTxHistory()
     return
   }
   const key = getCacheKey(chainId, tokenAddr)
@@ -25,6 +33,7 @@ function loadStore(chainId, tokenAddr) {
   } catch {
     store.value = {}
   }
+  refreshTxHistory()
 }
 
 function saveStore(chainId, tokenAddr) {
@@ -74,11 +83,12 @@ function clearPools() {
 // ==================== 交易历史 ====================
 
 function loadTxHistory() {
-  return store.value.txHistory || []
+  return txHistoryRef.value
 }
 
 function saveTxHistory(list) {
   store.value.txHistory = list
+  refreshTxHistory()
 }
 
 function addTxToHistory(tx) {
@@ -86,10 +96,12 @@ function addTxToHistory(tx) {
   if (list.some(t => t.hash === tx.hash)) return
   list.unshift(tx)
   store.value.txHistory = list
+  refreshTxHistory()
 }
 
 function clearTxHistory() {
   store.value.txHistory = []
+  refreshTxHistory()
 }
 
 // ==================== 帖子列表 ====================
@@ -101,10 +113,6 @@ function loadPosts() {
 function savePosts(data) {
   if (!data) return
   store.value.posts = { data, ts: Date.now() }
-}
-
-function clearPosts() {
-  delete store.value.posts
 }
 
 // ==================== UI设置 ====================
@@ -119,20 +127,13 @@ function saveSetting(key, value) {
   store.value.settings[key] = value
 }
 
-function clearSettings() {
-  delete store.value.settings
-}
-
 // ==================== 整体操作 ====================
-
-function clearAll() {
-  store.value = {}
-}
 
 function clearAllWithChainToken(chainId, tokenAddr) {
   const key = getCacheKey(chainId, tokenAddr)
   try { localStorage.removeItem(key) } catch {}
   store.value = {}
+  refreshTxHistory()
 }
 
 export function useDataStore() {
@@ -148,7 +149,6 @@ export function useDataStore() {
     // 池子数据
     loadPools,
     savePoolsData,
-    clearPools,
     // 交易历史
     loadTxHistory,
     saveTxHistory,
@@ -157,13 +157,10 @@ export function useDataStore() {
     // 帖子
     loadPosts,
     savePosts,
-    clearPosts,
     // 设置
     loadSettings,
     saveSetting,
-    clearSettings,
     // 整体
-    clearAll,
     clearAllWithChainToken
   }
 }
