@@ -1,51 +1,90 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { marked } from 'marked'
+import { ref, onMounted, nextTick } from 'vue'
+import MarkdownIt from 'markdown-it'
 import { ArrowLeft } from '@element-plus/icons-vue'
 
-const router = useRouter()
 const htmlContent = ref('')
 const loading = ref(true)
 const error = ref(null)
+
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\u4e00-\u9fa5-]+/g, '-') // 保留中文、字母、数字、连字符，其他替换为-
+    .replace(/\s+/g, '-')
+    .replace(/--+/g, '-')
+    .replace(/^-+|-+$/g, '') // 去掉首尾的连字符
+}
+
+const md = new MarkdownIt({
+  breaks: true,
+  html: true,
+  linkify: true,
+  typographer: true
+})
+
+const defaultRender = md.renderer.rules.heading_open || function(tokens, idx, options, env, self) {
+  return self.renderToken(tokens, idx, options)
+}
+
+md.renderer.rules.heading_open = function(tokens, idx, options, env, self) {
+  const token = tokens[idx]
+  let text = ''
+  
+  for (let i = idx + 1; i < tokens.length; i++) {
+    const t = tokens[i]
+    if (t.type === 'heading_close') break
+    if (t.type === 'inline' && t.children) {
+      text = t.children.map(child => child.content || '').join('')
+      break
+    }
+  }
+  
+  const slug = slugify(typeof text === 'string' ? text : '')
+  if (slug) {
+    token.attrSet('id', slug)
+  }
+  return defaultRender(tokens, idx, options, env, self)
+}
 
 onMounted(async () => {
   try {
     const res = await fetch('/CreatorCommunity/user-manual.md')
     if (!res.ok) throw new Error(`加载失败 (${res.status})`)
-    const md = await res.text()
+    const markdownText = await res.text()
 
-    marked.setOptions({
-      breaks: true,
-      gfm: true
-    })
-
-    htmlContent.value = marked.parse(md)
+    htmlContent.value = md.render(markdownText)
     loading.value = false
+
+    await nextTick()
+    const hash = window.location.hash
+    if (hash) {
+      const id = decodeURIComponent(hash.slice(1))
+      const el = document.getElementById(id)
+      if (el) el.scrollIntoView({ behavior: 'smooth' })
+    }
   } catch (e) {
     error.value = e.message
     loading.value = false
   }
 })
-
-function goBack() {
-  router.replace('/CreatorCommunity')
-}
 </script>
 
 <template>
   <div class="manual-page">
     <div class="manual-header">
-      <el-button type="primary" plain size="small" @click="goBack">
+      <router-link class="manual-link" to="/CreatorCommunity">
         <el-icon><ArrowLeft /></el-icon>
-        返回首页
-      </el-button>
+        <span>返回首页</span>
+      </router-link>
       <h1 class="manual-title">用户手册</h1>
+      <span class="header-spacer"></span>
     </div>
 
     <el-card class="manual-card">
       <div v-if="loading" class="manual-loading">
-        <el-icon class="is-loading"><el-icon-loading /></el-icon>
+        <el-icon class="loading-icon" :size="32"><el-icon-loading /></el-icon>
         <span>加载手册中...</span>
       </div>
 
@@ -61,7 +100,7 @@ function goBack() {
 
 <style scoped>
 .manual-page {
-  max-width: 960px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -69,14 +108,56 @@ function goBack() {
 .manual-header {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
   margin-bottom: 24px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+  border: 1px solid rgba(99, 102, 241, 0.12);
+  border-radius: 14px;
+}
+
+.manual-header .manual-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+}
+
+.header-spacer {
+  width: 120px;
 }
 
 .manual-title {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
-  font-size: 24px;
-  color: #1e1b4b;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.manual-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #6366f1;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  padding: 8px 16px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  border-radius: 8px;
+  background: rgba(99, 102, 241, 0.06);
+  transition: all 0.2s ease;
+}
+
+.manual-link:hover {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
 }
 
 .manual-card {
@@ -90,7 +171,18 @@ function goBack() {
   justify-content: center;
   gap: 12px;
   padding: 60px 0;
-  color: #909399;
+  color: #666;
+  font-size: 14px;
+}
+
+.loading-icon {
+  color: #6366f1;
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .manual-content {
@@ -100,8 +192,8 @@ function goBack() {
 
 .manual-content :deep(h1) {
   font-size: 28px;
-  color: #1a365d;
-  border-bottom: 2px solid #e2e8f0;
+  color: #6366f1;
+  border-bottom: 2px solid rgba(99, 102, 241, 0.2);
   padding-bottom: 8px;
   margin-top: 40px;
   margin-bottom: 16px;
@@ -109,14 +201,14 @@ function goBack() {
 
 .manual-content :deep(h2) {
   font-size: 22px;
-  color: #1e1b4b;
+  color: #8b5cf6;
   margin-top: 32px;
   margin-bottom: 12px;
 }
 
 .manual-content :deep(h3) {
   font-size: 18px;
-  color: #3182ce;
+  color: #6366f1;
   margin-top: 24px;
   margin-bottom: 8px;
 }
@@ -152,8 +244,8 @@ function goBack() {
 }
 
 .manual-content :deep(code) {
-  background: #f0f4f8;
-  color: #e53e3e;
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 14px;
@@ -185,24 +277,24 @@ function goBack() {
 
 .manual-content :deep(th),
 .manual-content :deep(td) {
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(99, 102, 241, 0.2);
   padding: 8px 12px;
   text-align: left;
 }
 
 .manual-content :deep(th) {
-  background: #f0f4f8;
-  color: #2c5282;
+  background: rgba(99, 102, 241, 0.06);
+  color: #6366f1;
   font-weight: 600;
 }
 
 .manual-content :deep(tr:nth-child(even)) {
-  background: #fafbfc;
+  background: rgba(99, 102, 241, 0.02);
 }
 
 .manual-content :deep(hr) {
   border: none;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgba(99, 102, 241, 0.2);
   margin: 24px 0;
 }
 
@@ -210,7 +302,7 @@ function goBack() {
   border-left: 4px solid #6366f1;
   margin: 12px 0;
   padding: 8px 16px;
-  background: #f0f4f8;
+  background: rgba(99, 102, 241, 0.06);
   border-radius: 0 4px 4px 0;
   color: #4a5568;
 }
