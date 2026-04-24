@@ -1,20 +1,37 @@
 <script setup>
-import { ref, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import MarkdownIt from 'markdown-it'
 import { ArrowLeft } from '@element-plus/icons-vue'
+
+const props = defineProps({
+  lang: {
+    type: String,
+    default: 'zh'
+  }
+})
+
+const router = useRouter()
+const route = useRoute()
 
 const htmlContent = ref('')
 const loading = ref(true)
 const error = ref(null)
+const currentLang = computed(() => props.lang)
+
+// 监听路由参数变化
+watch(() => props.lang, (newLang) => {
+  loadManual(newLang)
+})
 
 function slugify(text) {
   return text
     .toLowerCase()
     .trim()
-    .replace(/[^\w\u4e00-\u9fa5-]+/g, '-') // 保留中文、字母、数字、连字符，其他替换为-
+    .replace(/[^\w\u4e00-\u9fa5-]+/g, '-')
     .replace(/\s+/g, '-')
     .replace(/--+/g, '-')
-    .replace(/^-+|-+$/g, '') // 去掉首尾的连字符
+    .replace(/^-+|-+$/g, '')
 }
 
 const md = new MarkdownIt({
@@ -48,9 +65,14 @@ md.renderer.rules.heading_open = function(tokens, idx, options, env, self) {
   return defaultRender(tokens, idx, options, env, self)
 }
 
-onMounted(async () => {
+// 加载对应语言的手册
+async function loadManual(lang) {
+  loading.value = true
+  error.value = null
+  
   try {
-    const res = await fetch('/CreatorCommunity/user-manual.md')
+    const fileName = lang === 'zh' ? 'user-manual.zh.md' : 'user-manual.en.md'
+    const res = await fetch(`/CreatorCommunity/${fileName}`)
     if (!res.ok) throw new Error(`加载失败 (${res.status})`)
     const markdownText = await res.text()
 
@@ -58,6 +80,7 @@ onMounted(async () => {
     loading.value = false
 
     await nextTick()
+    
     const hash = window.location.hash
     if (hash) {
       const id = decodeURIComponent(hash.slice(1))
@@ -68,6 +91,30 @@ onMounted(async () => {
     error.value = e.message
     loading.value = false
   }
+}
+
+// 切换语言
+function switchLang(lang) {
+  const targetRoute = lang === 'zh' ? '/CreatorCommunity/manual-zh' : '/CreatorCommunity/manual-en'
+  router.push(targetRoute)
+}
+
+// 处理内容点击（事件委托）
+function handleContentClick(e) {
+  const link = e.target.closest('a')
+  if (!link) return
+  
+  const href = link.getAttribute('href')
+  if (href === './user-manual.zh.md' || href === './user-manual.en.md') {
+    e.preventDefault()
+    const targetLang = href.includes('zh') ? 'zh' : 'en'
+    router.push(targetLang === 'zh' ? '/CreatorCommunity/manual-zh' : '/CreatorCommunity/manual-en')
+  }
+}
+
+// 监听路由变化重新加载
+onMounted(() => {
+  loadManual(currentLang.value)
 })
 </script>
 
@@ -78,22 +125,27 @@ onMounted(async () => {
         <el-icon><ArrowLeft /></el-icon>
         <span>返回首页</span>
       </router-link>
-      <h1 class="manual-title">用户手册</h1>
+      <h1 class="manual-title">{{ currentLang === 'zh' ? '用户手册' : 'User Manual' }}</h1>
       <span class="header-spacer"></span>
     </div>
 
     <el-card class="manual-card">
       <div v-if="loading" class="manual-loading">
         <el-icon class="loading-icon" :size="32"><el-icon-loading /></el-icon>
-        <span>加载手册中...</span>
+        <span>{{ currentLang === 'zh' ? '加载手册中...' : 'Loading manual...' }}</span>
       </div>
 
       <el-alert v-else-if="error" type="error" :title="error" :closable="false" show-icon>
-        <p>请确保用户手册文件存在于 <code>public/user-manual.md</code></p>
+        <p>请确保用户手册文件存在于 <code>public/user-manual.{{ currentLang }}.md</code></p>
       </el-alert>
 
       <!-- eslint-disable-next-line vue/no-v-html -->
-      <div v-else class="manual-content" v-html="htmlContent" />
+      <div 
+        v-else 
+        class="manual-content" 
+        v-html="htmlContent"
+        @click="handleContentClick"
+      />
     </el-card>
   </div>
 </template>
