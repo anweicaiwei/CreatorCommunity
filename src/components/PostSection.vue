@@ -31,7 +31,7 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
           <el-icon><EditPen /></el-icon>
           <span>发帖</span>
         </el-button>
-        <el-tag v-if="readData.postCooldown" type="info" effect="plain">
+        <el-tag v-if="readData.postCooldown" type="info" effect="plain" size="small">
           {{ readData.postCooldown }}
         </el-tag>
       </div>
@@ -56,7 +56,7 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
         <div class="post-list">
           <div v-for="post in postList" :key="post.postId" class="post-item">
             <div class="post-info">
-              <el-tag size="small" type="info">POST_ID: {{ post.postId }}</el-tag>
+              <el-tag size="small" type="info" effect="plain">POST_ID: {{ post.postId }}</el-tag>
               <el-text size="small" type="info">作者：{{ post.authorShort }}</el-text>
             </div>
             <el-button size="small" @click="emit('reward-comment', post.author, post.postId)" class="post-action-btn post-action-btn--small">
@@ -73,8 +73,8 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 
 <style scoped>
 .reward-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 14px;
@@ -86,8 +86,8 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 }
 
 .reward-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .reward-card-header {
@@ -106,17 +106,17 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
   justify-content: center;
   font-size: 18px;
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .reward-card-icon--secondary {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--color-secondary);
 }
 
 .reward-card-icon--accent {
   background: rgba(6, 182, 212, 0.1);
-  color: #06b6d4;
+  color: var(--color-accent);
 }
 
 .reward-card-info {
@@ -128,12 +128,12 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 .reward-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .reward-card-desc {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .reward-action-row {
@@ -166,20 +166,20 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 }
 
 .post-action-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  background: var(--gradient-primary) !important;
   border: none !important;
-  color: #fff !important;
+  color: var(--color-text-inverse) !important;
   font-weight: 500;
 }
 
 .post-action-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%) !important;
+  background: var(--gradient-primary-hover) !important;
 }
 
 .post-action-btn--small {
   background: rgba(99, 102, 241, 0.1) !important;
-  border: 1px solid rgba(99, 102, 241, 0.2) !important;
-  color: #6366f1 !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-primary) !important;
 }
 
 .post-action-btn--small:hover:not(:disabled) {
@@ -188,8 +188,8 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 
 .post-refresh-btn {
   background: rgba(99, 102, 241, 0.1) !important;
-  border: 1px solid rgba(99, 102, 241, 0.2) !important;
-  color: #6366f1 !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-primary) !important;
 }
 
 .post-refresh-btn:hover:not(:disabled) {
@@ -207,15 +207,15 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: #fff;
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   transition: all 0.2s ease;
 }
 
 .post-item:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
 }
 
@@ -229,5 +229,10 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
 @keyframes rotating {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+/* 暗黑模式样式 */
+html.dark .post-item {
+  background: var(--color-background-mute);
 }
 </style>

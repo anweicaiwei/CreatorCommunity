@@ -5,6 +5,7 @@ import { NETWORK_CONFIG } from '@/contracts'
 import Card from '@/components/card.vue'
 
 const props = defineProps({
+  isDark: Boolean,
   isConnected: Boolean,
   isInitializing: Boolean,
   isCorrectNetwork: Boolean,
@@ -158,7 +159,7 @@ function formatDuration(seconds) {
         <div class="wallet-overview-info">
           <div class="wallet-address-row">
             <span class="wallet-address-short">{{ formattedAccount }}</span>
-            <el-tag :type="isCorrectNetwork ? 'success' : 'danger'" size="small" effect="plain" class="wallet-status-tag">
+            <el-tag :type="isCorrectNetwork ? 'success' : 'danger'" size="small" effect="plain">
               {{ isCorrectNetwork ? '已连接' : '网络错误' }}
             </el-tag>
           </div>
@@ -185,11 +186,11 @@ function formatDuration(seconds) {
           <p class="deploy-desc">部署 CreatorToken 合约将自动创建配套的 CreatorNFT 合约</p>
           <div class="deploy-info-list">
             <div class="deploy-info-item">
-              <el-tag size="small" type="success">CTK</el-tag>
+              <el-tag size="small" type="success" effect="plain">CTK</el-tag>
               <span>CreatorToken ERC20 代币</span>
             </div>
             <div class="deploy-info-item">
-              <el-tag size="small" type="warning">CMN</el-tag>
+              <el-tag size="small" type="warning" effect="plain">CMN</el-tag>
               <span>CreatorNFT ERC721 勋章</span>
             </div>
           </div>
@@ -214,7 +215,7 @@ function formatDuration(seconds) {
         <div v-else class="contract-addresses">
           <div class="contract-address-item">
             <div class="contract-address-label">
-              <el-tag size="small" type="success">CTK</el-tag>
+              <el-tag size="small" type="success" effect="plain">CTK</el-tag>
               <span>CreatorToken</span>
             </div>
             <div class="contract-address-value">
@@ -224,7 +225,7 @@ function formatDuration(seconds) {
           </div>
           <div class="contract-address-item">
             <div class="contract-address-label">
-              <el-tag size="small" type="warning">CMN</el-tag>
+              <el-tag size="small" type="warning" effect="plain">CMN</el-tag>
               <span>CreatorNFT</span>
             </div>
             <div class="contract-address-value">
@@ -324,7 +325,7 @@ function formatDuration(seconds) {
             </div>
           </div>
           <div class="admin-option-hint">
-            <el-icon color="#856404"><Warning /></el-icon>
+            <el-icon :color="isDark ? '#fbbf24' : '#856404'"><Warning /></el-icon>
             <span>开启后，会显示代币转账和勋章转移功能</span>
           </div>
         </div>
@@ -358,8 +359,8 @@ function formatDuration(seconds) {
 
 <style scoped>
 .wallet-connect-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 24px;
   text-align: center;
@@ -367,8 +368,8 @@ function formatDuration(seconds) {
 }
 
 .wallet-connect-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .wallet-connect-icon {
@@ -379,8 +380,8 @@ function formatDuration(seconds) {
   align-items: center;
   justify-content: center;
   font-size: 28px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.15));
-  color: #6366f1;
+  background: var(--gradient-surface);
+  color: var(--color-primary);
   margin: 0 auto 16px;
 }
 
@@ -394,25 +395,25 @@ function formatDuration(seconds) {
 .wallet-connect-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .wallet-connect-desc {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .wallet-connect-btn {
   width: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   border: none;
-  color: #fff;
+  color: var(--color-text-inverse);
   font-weight: 600;
   padding: 12px 24px;
 }
 
 .wallet-connect-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  background: var(--gradient-primary-hover);
 }
 
 .wallet-error {
@@ -428,8 +429,8 @@ function formatDuration(seconds) {
 
 /* 钱包概览卡片 */
 .wallet-overview-card {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(139, 92, 246, 0.08));
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
   display: flex;
@@ -445,8 +446,8 @@ function formatDuration(seconds) {
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
-  color: #ffffff;
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
   flex-shrink: 0;
 }
 
@@ -465,17 +466,13 @@ function formatDuration(seconds) {
 .wallet-address-short {
   font-size: 16px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
   font-family: monospace;
-}
-
-.wallet-status-tag {
-  font-size: 11px;
 }
 
 .wallet-address-full {
   font-size: 11px;
-  color: #64748b;
+  color: var(--color-text-muted);
   font-family: monospace;
   word-break: break-all;
   white-space: nowrap;
@@ -491,8 +488,8 @@ function formatDuration(seconds) {
 }
 
 .wallet-status-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 12px;
   display: flex;
@@ -503,8 +500,8 @@ function formatDuration(seconds) {
 }
 
 .wallet-status-card:hover {
-  border-color: rgba(99, 102, 241, 0.25);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .wallet-status-icon {
@@ -520,27 +517,27 @@ function formatDuration(seconds) {
 
 .wallet-status-icon.success {
   background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .wallet-status-icon.danger {
   background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--color-danger);
 }
 
 .wallet-status-icon.warning {
   background: rgba(245, 158, 11, 0.12);
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .wallet-status-icon.info {
   background: rgba(100, 116, 139, 0.12);
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .wallet-status-icon.primary {
   background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .wallet-status-info {
@@ -553,25 +550,25 @@ function formatDuration(seconds) {
 
 .wallet-status-label {
   font-size: 11px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .wallet-status-value {
   font-size: 12px;
-  color: #1e1b4b;
+  color: var(--color-text);
   font-weight: 500;
   font-family: monospace;
 }
 
 .wallet-status-value.time-value {
-  color: #6366f1;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 13px;
 }
 
 .wallet-explorer-link {
   font-size: 12px;
-  color: #6366f1;
+  color: var(--color-primary);
   text-decoration: none;
   font-weight: 500;
 }
@@ -583,7 +580,7 @@ function formatDuration(seconds) {
 /* 提示信息 */
 .wallet-tip {
   background: rgba(99, 102, 241, 0.06);
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 10px 12px;
   display: flex;
@@ -592,22 +589,22 @@ function formatDuration(seconds) {
 }
 
 .wallet-tip-icon {
-  color: #6366f1;
+  color: var(--color-primary);
   font-size: 14px;
   flex-shrink: 0;
 }
 
 .wallet-tip-text {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .wallet-tip-text.success {
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .wallet-tip-text.warning {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .wallet-alert {
@@ -624,20 +621,20 @@ function formatDuration(seconds) {
 .wallet-action-btn {
   background: rgba(99, 102, 241, 0.1) !important;
   border: 1px solid rgba(99, 102, 241, 0.2) !important;
-  color: #6366f1 !important;
+  color: var(--color-primary) !important;
   font-weight: 500;
   padding: 10px 16px;
 }
 
 .wallet-action-btn:hover:not(:disabled) {
   background: rgba(99, 102, 241, 0.2) !important;
-  border-color: rgba(99, 102, 241, 0.4) !important;
+  border-color: var(--color-border-hover) !important;
 }
 
 .wallet-action-btn--secondary {
   background: rgba(100, 116, 139, 0.1) !important;
   border: 1px solid rgba(100, 116, 139, 0.2) !important;
-  color: #64748b !important;
+  color: var(--color-text-muted) !important;
 }
 
 .wallet-action-btn--secondary:hover:not(:disabled) {
@@ -647,8 +644,8 @@ function formatDuration(seconds) {
 
 /* 合约状态卡片 */
 .contract-status-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px;
 }
@@ -668,7 +665,7 @@ function formatDuration(seconds) {
   align-items: center;
   justify-content: center;
   background: rgba(99, 102, 241, 0.12);
-  color: #6366f1;
+  color: var(--color-primary);
   font-size: 18px;
 }
 
@@ -681,7 +678,7 @@ function formatDuration(seconds) {
 .contract-status-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .contract-deploy-prompt {
@@ -693,7 +690,7 @@ function formatDuration(seconds) {
 .deploy-desc {
   margin: 0;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .deploy-info-list {
@@ -707,19 +704,19 @@ function formatDuration(seconds) {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .contract-deploy-btn {
   width: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   border: none;
-  color: #fff;
+  color: var(--color-text-inverse);
   font-weight: 600;
 }
 
 .contract-deploy-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  background: var(--gradient-primary-hover);
 }
 
 .deploy-status-text {
@@ -740,7 +737,7 @@ function formatDuration(seconds) {
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.5);
   border-radius: 8px;
-  border: 1px solid rgba(99, 102, 241, 0.1);
+  border: 1px solid var(--color-border);
 }
 
 .contract-address-label {
@@ -749,7 +746,7 @@ function formatDuration(seconds) {
   gap: 6px;
   font-size: 12px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .contract-address-value {
@@ -761,7 +758,7 @@ function formatDuration(seconds) {
 
 .mono {
   font-family: monospace;
-  color: #6366f1;
+  color: var(--color-primary);
   word-break: break-all;
   font-size: 12px;
 }
@@ -786,7 +783,7 @@ function formatDuration(seconds) {
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .admin-options {
@@ -804,7 +801,7 @@ function formatDuration(seconds) {
 
 .admin-option-label {
   font-size: 13px;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .admin-option-hint {
@@ -812,7 +809,7 @@ function formatDuration(seconds) {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #856404;
+  color: var(--color-warning);
 }
 
 .admin-danger-zone {
@@ -820,4 +817,110 @@ function formatDuration(seconds) {
   border-top: 1px dashed rgba(245, 158, 11, 0.2);
 }
 
+/* 暗黑模式覆盖 */
+html.dark .wallet-connect-card {
+  background: var(--color-background-soft);
+}
+
+html.dark .wallet-connect-icon {
+  background: var(--gradient-surface);
+  color: var(--color-primary);
+}
+
+html.dark .wallet-connect-title {
+  color: var(--color-text);
+}
+
+html.dark .wallet-connect-desc {
+  color: var(--color-text-muted);
+}
+
+html.dark .wallet-overview-card {
+  background: var(--gradient-surface);
+}
+
+html.dark .wallet-address-short {
+  color: var(--color-text);
+}
+
+html.dark .wallet-address-full {
+  color: var(--color-text-muted);
+}
+
+html.dark .wallet-status-card {
+  background: var(--color-background-soft);
+}
+
+html.dark .wallet-status-label {
+  color: var(--color-text-muted);
+}
+
+html.dark .wallet-status-value {
+  color: var(--color-text);
+}
+
+html.dark .wallet-status-value.time-value {
+  color: var(--color-primary);
+}
+
+html.dark .wallet-explorer-link {
+  color: var(--color-primary);
+}
+
+html.dark .wallet-tip-icon {
+  color: var(--color-primary);
+}
+
+html.dark .wallet-tip-text {
+  color: var(--color-text-muted);
+}
+
+html.dark .contract-status-card {
+  background: var(--color-background-soft);
+}
+
+html.dark .contract-status-title {
+  color: var(--color-text);
+}
+
+html.dark .deploy-desc {
+  color: var(--color-text-muted);
+}
+
+html.dark .deploy-info-item {
+  color: var(--color-text);
+}
+
+html.dark .contract-address-item {
+  background: var(--color-background-mute);
+}
+
+html.dark .contract-address-label {
+  color: var(--color-text);
+}
+
+html.dark .mono {
+  color: var(--color-primary);
+}
+
+html.dark .admin-title {
+  color: var(--color-warning);
+}
+
+html.dark .admin-option-label {
+  color: var(--color-text);
+}
+
+html.dark .admin-option-hint {
+  color: var(--color-warning);
+}
+
+/* 暗黑模式下修正半透明背景 */
+html.dark .admin-section {
+  background: rgba(245, 158, 11, 0.1);
+}
+
+html.dark .contract-address-item {
+  background: var(--color-background-mute);
+}
 </style>

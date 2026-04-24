@@ -1,28 +1,26 @@
 <script setup>
-import { ref, onMounted, nextTick, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import MarkdownIt from 'markdown-it'
-import { ArrowLeft } from '@element-plus/icons-vue'
-
-const props = defineProps({
-  lang: {
-    type: String,
-    default: 'zh'
-  }
-})
-
-const router = useRouter()
-const route = useRoute()
+import { ArrowLeft, Sunny, Moon } from '@element-plus/icons-vue'
 
 const htmlContent = ref('')
 const loading = ref(true)
 const error = ref(null)
-const currentLang = computed(() => props.lang)
+const currentLang = ref('zh')
 
-// 监听路由参数变化
-watch(() => props.lang, (newLang) => {
-  loadManual(newLang)
-})
+const STORAGE_KEY = 'creatorcommunity-dark-mode'
+const isDark = ref(localStorage.getItem(STORAGE_KEY) === 'true')
+
+function toggleDark() {
+  isDark.value = !isDark.value
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem(STORAGE_KEY, 'true')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem(STORAGE_KEY, 'false')
+  }
+} 
 
 function slugify(text) {
   return text
@@ -93,12 +91,6 @@ async function loadManual(lang) {
   }
 }
 
-// 切换语言
-function switchLang(lang) {
-  const targetRoute = lang === 'zh' ? '/CreatorCommunity/manual-zh' : '/CreatorCommunity/manual-en'
-  router.push(targetRoute)
-}
-
 // 处理内容点击（事件委托）
 function handleContentClick(e) {
   const link = e.target.closest('a')
@@ -108,13 +100,20 @@ function handleContentClick(e) {
   if (href === './user-manual.zh.md' || href === './user-manual.en.md') {
     e.preventDefault()
     const targetLang = href.includes('zh') ? 'zh' : 'en'
-    router.push(targetLang === 'zh' ? '/CreatorCommunity/manual-zh' : '/CreatorCommunity/manual-en')
+    currentLang.value = targetLang
   }
 }
 
-// 监听路由变化重新加载
+// 监听语言变化
+watch(currentLang, (newLang) => {
+  loadManual(newLang)
+})
+
 onMounted(() => {
-  loadManual(currentLang.value)
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+  }
+  loadManual('zh')
 })
 </script>
 
@@ -126,7 +125,9 @@ onMounted(() => {
         <span>返回首页</span>
       </router-link>
       <h1 class="manual-title">{{ currentLang === 'zh' ? '用户手册' : 'User Manual' }}</h1>
-      <span class="header-spacer"></span>
+      <button class="theme-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
+        <el-icon size="18"><Sunny v-if="isDark" /><Moon v-else /></el-icon>
+      </button>
     </div>
 
     <el-card class="manual-card">
@@ -176,6 +177,95 @@ onMounted(() => {
 
 .header-spacer {
   width: 120px;
+}
+
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(99, 102, 241, 0.06);
+  color: #6366f1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.theme-toggle:hover {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-color: transparent;
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+}
+
+html.dark .theme-toggle {
+  background: rgba(99, 102, 241, 0.15);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+html.dark .theme-toggle:hover {
+  background: linear-gradient(135deg, #818cf8, #a78bfa);
+  color: #fff;
+}
+
+html.dark .manual-content {
+  color: #e2e8f0;
+}
+
+html.dark .manual-content :deep(h1) {
+  color: #a5b4fc;
+  border-bottom-color: rgba(165, 180, 252, 0.2);
+}
+
+html.dark .manual-content :deep(h2) {
+  color: #c4b5fd;
+}
+
+html.dark .manual-content :deep(h3) {
+  color: #a5b4fc;
+}
+
+html.dark .manual-content :deep(h4) {
+  color: #94a3b8;
+}
+
+html.dark .manual-content :deep(a) {
+  color: #a5b4fc;
+}
+
+html.dark .manual-content :deep(code) {
+  background: rgba(165, 180, 252, 0.1);
+  color: #a5b4fc;
+}
+
+html.dark .manual-content :deep(pre) {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+html.dark .manual-content :deep(th),
+html.dark .manual-content :deep(td) {
+  border-color: rgba(165, 180, 252, 0.2);
+}
+
+html.dark .manual-content :deep(th) {
+  background: rgba(165, 180, 252, 0.06);
+  color: #a5b4fc;
+}
+
+html.dark .manual-content :deep(tr:nth-child(even)) {
+  background: rgba(165, 180, 252, 0.03);
+}
+
+html.dark .manual-content :deep(blockquote) {
+  border-left-color: #818cf8;
+  background: rgba(129, 140, 248, 0.06);
+  color: #94a3b8;
 }
 
 .manual-title {

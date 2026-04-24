@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@vueuse/core": "^14.2.1",
     "element-plus": "^2.13.7",
     "ethers": "^6.16.0",
     "markdown-it": "^14.1.1",

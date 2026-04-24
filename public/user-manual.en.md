@@ -103,15 +103,18 @@ After connecting your wallet and confirming the contract is deployed, it is reco
 - You cannot post again for rewards during the cooldown period
 - The page will display a cooldown countdown, the button will be available again after the countdown ends
 - Cooldown time is calculated from on-chain timestamps, not affected by local clock
+
 **Reward Calculation Examples**:
+
 | NFT Holdings | Post Reward |
-|--------------|-------------|
+|-------------|-------------|
 | No NFT | 2 CTK (base reward) |
 | 1 Bronze NFT | 2.01 CTK (+0.5%) |
 | 1 Silver NFT | 2.04 CTK (+2%) |
 | 1 Gold NFT | 2.24 CTK (+12%) |
 | 5 Gold NFTs | 3 CTK (+50%, reaches boost cap) |
 | Any higher boost | Max 10 CTK (absolute cap) |
+
 ### 3.3 Comment Reward
 **Function Description**: Comment on existing posts, both commenter and post author will earn CTK rewards, base 0.1 CTK each per comment.
 **Operation Steps**:
@@ -125,12 +128,15 @@ After connecting your wallet and confirming the contract is deployed, it is reco
 **Cooldown Mechanism**:
 - After each comment, the commenter address enters a **30-second** cooldown period
 - You cannot comment again for rewards during the cooldown period
+
 **Reward Limits**:
+
 | Limit Type | Rule |
-|------------|------|
+|-----------|------|
 | Single user on single post | Cumulative comment reward cap 0.5 CTK |
 | Total comment reward for single post | Cumulative cap 3 CTK |
 | Personal comment reward absolute cap | Max 2 CTK per comment (including NFT boost) |
+
 **Reward Distribution Notes**:
 - Commenter receives: Base 0.1 CTK + NFT boost
 - Post author receives: Base 0.1 CTK + NFT boost
@@ -173,7 +179,7 @@ After connecting your wallet and confirming the contract is deployed, it is reco
 **Function Description**: Use CTK to mint three tiers of NFT medals, holding NFTs provides reward multiplier boosts for posting and commenting.
 #### NFT Tiers & Prices
 | Tier | Initial Price | Boost per NFT | Post Cap Boost per NFT | Comment Cap Boost per NFT |
-|------|---------------|---------------|------------------------|---------------------------|
+|------|--------------|--------------|------------------------|---------------------------|
 | Bronze (BRONZE) | 1,000 CTK | +0.5% | +0.2 CTK | +0.05 CTK |
 | Silver (SILVER) | 5,000 CTK | +2% | +1.5 CTK | +0.3 CTK |
 | Gold (GOLD) | 10,000 CTK | +12% | +6 CTK | +1.8 CTK |

@@ -52,7 +52,7 @@ const safeMyNFTs = computed(() => {
             <!-- 青铜 -->
             <div class="nft-column">
               <div class="column-header">
-                <el-tag type="info" effect="dark" size="small">青铜 x{{ readData.myBronze || 0 }}</el-tag>
+                <el-tag type="info" size="small" effect="plain">青铜 x{{ readData.myBronze || 0 }}</el-tag>
                 <span v-if="readData.myBronze > 0" class="boost-tag">+{{ readData.myBronzeBoost }}%</span>
               </div>
               <el-scrollbar class="column-body">
@@ -71,7 +71,7 @@ const safeMyNFTs = computed(() => {
             <!-- 白银 -->
             <div class="nft-column">
               <div class="column-header">
-                <el-tag effect="dark" size="small">白银 x{{ readData.mySilver || 0 }}</el-tag>
+                <el-tag size="small" effect="plain">白银 x{{ readData.mySilver || 0 }}</el-tag>
                 <span v-if="readData.mySilver > 0" class="boost-tag">+{{ readData.mySilverBoost }}%</span>
               </div>
               <el-scrollbar class="column-body">
@@ -90,7 +90,7 @@ const safeMyNFTs = computed(() => {
             <!-- 黄金 -->
             <div class="nft-column">
               <div class="column-header">
-                <el-tag type="warning" effect="dark" size="small">黄金 x{{ readData.myGold || 0 }}</el-tag>
+                <el-tag type="warning" size="small" effect="plain">黄金 x{{ readData.myGold || 0 }}</el-tag>
                 <span v-if="readData.myGold > 0" class="boost-tag">+{{ readData.myGoldBoost }}%</span>
               </div>
               <el-scrollbar class="column-body">
@@ -173,8 +173,8 @@ const safeMyNFTs = computed(() => {
 }
 
 .nft-section-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 12px;
@@ -186,7 +186,7 @@ const safeMyNFTs = computed(() => {
   gap: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .nft-section-icon {
@@ -197,7 +197,7 @@ const safeMyNFTs = computed(() => {
   align-items: center;
   justify-content: center;
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
   font-size: 16px;
 }
 
@@ -233,8 +233,8 @@ const safeMyNFTs = computed(() => {
 .nft-column {
   display: flex;
   flex-direction: column;
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
   height: auto;
@@ -242,8 +242,8 @@ const safeMyNFTs = computed(() => {
 
 .column-header {
   padding: 10px 12px;
-  background: #fff;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-elevated);
+  border-bottom: 1px solid var(--color-border);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -253,7 +253,7 @@ const safeMyNFTs = computed(() => {
 
 .boost-tag {
   font-size: 12px;
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 600;
 }
 
@@ -279,8 +279,8 @@ const safeMyNFTs = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  background: #fff;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   margin-bottom: 6px;
   transition: all 0.2s ease;
@@ -292,16 +292,16 @@ const safeMyNFTs = computed(() => {
 }
 
 .nft-item:hover {
-  border-color: #a78bfa;
+  border-color: var(--color-secondary);
   transform: scale(1.02);
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+  box-shadow: var(--shadow-sm);
   z-index: 10;
 }
 
 .nft-id {
   font-family: monospace;
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .mint-nfts {
@@ -325,10 +325,10 @@ const safeMyNFTs = computed(() => {
   flex: 1;
   width: 100%;
   justify-content: center;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #fff;
-  color: #6366f1;
+  background: var(--color-background-elevated);
+  color: var(--color-primary);
   font-size: 13px;
   padding: 10px 12px;
   transition: all 0.2s ease;
@@ -338,13 +338,13 @@ const safeMyNFTs = computed(() => {
 }
 
 .mint-btn:hover:not(:disabled) {
-  border-color: #a78bfa;
+  border-color: var(--color-secondary);
   background: rgba(139, 92, 246, 0.1);
 }
 
 .mint-btn:disabled {
-  background: #f8fafc;
-  border-color: rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border-color: var(--color-border);
 }
 
 .mint-btn--bronze {
@@ -356,7 +356,7 @@ const safeMyNFTs = computed(() => {
 }
 
 .mint-btn--gold {
-  border-left: 3px solid #e6a23c;
+  border-left: 3px solid var(--color-warning);
 }
 
 .boost-summary {
@@ -367,16 +367,16 @@ const safeMyNFTs = computed(() => {
   gap: 8px;
   font-size: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(99, 102, 241, 0.1);
+  border-top: 1px solid var(--color-border);
 }
 
 .boost-item {
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 500;
 }
 
 .boost-divider {
-  color: #909399;
+  color: var(--color-text-muted);
 }
 
 .actual-boost {
@@ -386,8 +386,8 @@ const safeMyNFTs = computed(() => {
 
 .transfer-section {
   margin-top: 16px;
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 14px 16px;
 }
@@ -412,11 +412,18 @@ const safeMyNFTs = computed(() => {
 
 .nft-transfer-btn {
   background: rgba(99, 102, 241, 0.1) !important;
-  border: 1px solid rgba(99, 102, 241, 0.2) !important;
-  color: #6366f1 !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-primary) !important;
 }
 
 .nft-transfer-btn:hover:not(:disabled) {
   background: rgba(99, 102, 241, 0.2) !important;
+}
+
+/* 暗黑模式样式 */
+html.dark .nft-item,
+html.dark .mint-btn,
+html.dark .column-header {
+  background: var(--color-background-mute);
 }
 </style>

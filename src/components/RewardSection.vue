@@ -141,8 +141,8 @@ const rewardRows = computed(() => [
 
 <style scoped>
 .reward-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 14px;
@@ -154,8 +154,8 @@ const rewardRows = computed(() => [
 }
 
 .reward-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .reward-card-header {
@@ -174,17 +174,17 @@ const rewardRows = computed(() => [
   justify-content: center;
   font-size: 18px;
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .reward-card-icon--secondary {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--color-secondary);
 }
 
 .reward-card-icon--accent {
   background: rgba(6, 182, 212, 0.1);
-  color: #06b6d4;
+  color: var(--color-accent);
 }
 
 .reward-card-info {
@@ -196,30 +196,30 @@ const rewardRows = computed(() => [
 .reward-card-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .reward-card-desc {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .reward-claim-btn {
   width: 100%;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   border: none;
-  color: #fff;
+  color: var(--color-text-inverse);
   font-weight: 600;
 }
 
 .reward-claim-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  background: var(--gradient-primary-hover);
 }
 
 .reward-actions :deep(.el-button) {
   background: rgba(99, 102, 241, 0.1) !important;
-  border: 1px solid rgba(99, 102, 241, 0.2) !important;
-  color: #6366f1 !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-primary) !important;
   font-weight: 500;
   width: 100%;
   box-sizing: border-box;
@@ -231,17 +231,17 @@ const rewardRows = computed(() => [
 
 .reward-action-btn:hover:not(:disabled) {
   background: rgba(99, 102, 241, 0.2) !important;
-  border-color: rgba(99, 102, 241, 0.4) !important;
+  border-color: var(--color-border-hover) !important;
 }
 
 .reward-action-btn--primary {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+  background: var(--gradient-primary) !important;
   border: none !important;
-  color: #fff !important;
+  color: var(--color-text-inverse) !important;
 }
 
 .reward-action-btn--primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%) !important;
+  background: var(--gradient-primary-hover) !important;
 }
 
 .reward-stats {
@@ -263,17 +263,17 @@ const rewardRows = computed(() => [
 
 .reward-stat-label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .reward-stat-value {
   font-size: 16px;
   font-weight: 700;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .reward-stat--highlight .reward-stat-value {
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .reward-actions {

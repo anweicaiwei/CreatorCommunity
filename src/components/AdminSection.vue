@@ -217,13 +217,13 @@ function refreshPools() {
 .pools-title {
   font-size: 15px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .refresh-btn {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border);
 }
 
 .refresh-btn:hover {
@@ -241,15 +241,15 @@ function refreshPools() {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  background: #fff;
+  background: var(--color-background-elevated);
   border-radius: 12px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--color-border);
   transition: all 0.3s ease;
 }
 
 .pool-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
+  box-shadow: var(--shadow-sm);
 }
 
 .pool-card-icon {
@@ -264,31 +264,31 @@ function refreshPools() {
 
 .pool-card-creator .pool-card-icon {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .pool-card-interact .pool-card-icon {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
+  color: var(--color-secondary);
 }
 
 .pool-card-nft .pool-card-icon {
   background: rgba(6, 182, 212, 0.1);
-  color: #06b6d4;
+  color: var(--color-accent);
 }
 
 .warning-icon {
   cursor: pointer;
-  color: #06b6d4;
+  color: var(--color-accent);
 }
 
 .warning-icon:hover {
-  color: #22d3ee;
+  color: var(--color-accent-soft);
 }
 
 .pool-card-balance .pool-card-icon {
   background: rgba(16, 185, 129, 0.1);
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .pool-card-info {
@@ -302,13 +302,13 @@ function refreshPools() {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .pool-card-value {
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 /* 功能区域两列布局 */
@@ -320,8 +320,8 @@ function refreshPools() {
 }
 
 .function-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 16px;
 }
@@ -333,7 +333,7 @@ function refreshPools() {
   margin-bottom: 16px;
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .function-body {
@@ -357,7 +357,7 @@ function refreshPools() {
   flex: 1;
   width: 100%;
   justify-content: center;
-  border: 1px solid rgba(99, 102, 241, 0.2);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   font-size: 13px;
   padding: 10px 12px;
@@ -369,8 +369,8 @@ function refreshPools() {
 
 .action-btn--creator {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-  border-left: 3px solid #6366f1;
+  color: var(--color-primary);
+  border-left: 3px solid var(--color-primary);
 }
 
 .action-btn--creator:hover:not(:disabled) {
@@ -379,8 +379,8 @@ function refreshPools() {
 
 .action-btn--interact {
   background: rgba(139, 92, 246, 0.1);
-  color: #8b5cf6;
-  border-left: 3px solid #8b5cf6;
+  color: var(--color-secondary);
+  border-left: 3px solid var(--color-secondary);
 }
 
 .action-btn--interact:hover:not(:disabled) {
@@ -399,22 +399,22 @@ function refreshPools() {
   align-items: center;
   gap: 14px;
   padding: 14px;
-  background: #fff;
+  background: var(--color-background-elevated);
   border-radius: 10px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--color-border);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .price-action-item:hover:not(.disabled) {
-  border-color: #6366f1;
+  border-color: var(--color-primary);
   background: rgba(99, 102, 241, 0.05);
 }
 
 .price-action-item .el-button {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border-hover);
 }
 
 .price-action-item .el-button:hover:not(:disabled) {
@@ -438,12 +438,12 @@ function refreshPools() {
 
 .reset-icon {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .adjust-icon {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .price-action-text {
@@ -456,18 +456,18 @@ function refreshPools() {
 .price-action-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .price-action-desc {
   font-size: 11px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 /* 提取区域 */
 .withdraw-section {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 18px;
 }
@@ -479,7 +479,7 @@ function refreshPools() {
   margin-bottom: 14px;
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .withdraw-content {
@@ -501,7 +501,7 @@ function refreshPools() {
 
 .stat-label {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .stat-value {
@@ -510,11 +510,11 @@ function refreshPools() {
 }
 
 .stat-value.highlight {
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .stat-value.warning {
-  color: #f59e0b;
+  color: var(--color-warning);
 }
 
 .withdraw-actions {
@@ -525,8 +525,8 @@ function refreshPools() {
 
 .withdraw-actions .el-button {
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--color-primary);
+  border: 1px solid var(--color-border-hover);
 }
 
 .withdraw-actions .el-button:hover:not(:disabled) {
@@ -534,8 +534,8 @@ function refreshPools() {
 }
 
 .withdraw-actions .el-button:disabled {
-  background: #f8fafc;
-  color: #c0c4cc;
+  background: var(--color-background-soft);
+  color: var(--color-text-muted);
 }
 
 .withdraw-input {
@@ -547,11 +547,11 @@ function refreshPools() {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #856404;
+  color: var(--color-warning);
   padding: 10px 12px;
-  background: #fff8e6;
+  background: rgba(245, 158, 11, 0.1);
   border-radius: 8px;
-  border: 1px solid #ffdd99;
+  border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
 /* 响应式布局 */
@@ -578,5 +578,11 @@ function refreshPools() {
   .withdraw-actions {
     flex-wrap: wrap;
   }
+}
+
+/* 暗黑模式样式 */
+html.dark .pool-card,
+html.dark .price-action-item {
+  background: var(--color-background-mute);
 }
 </style>

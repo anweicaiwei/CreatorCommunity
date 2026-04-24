@@ -91,7 +91,7 @@ function getTagClass(label) {
         <div class="tx-list">
           <div v-for="tx in txList" :key="tx.hash" class="tx-item">
             <div class="tx-main">
-              <el-tag size="small" :class="getTagClass(tx.label)">{{ tx.label }}</el-tag>
+              <el-tag size="small" effect="plain" :class="getTagClass(tx.label)">{{ tx.label }}</el-tag>
               <el-text class="mono" size="small">{{ shortenHash(tx.hash) }}</el-text>
               <el-text class="tx-time" size="small" type="info">{{ formatTime(tx.timestamp) }}</el-text>
             </div>
@@ -158,8 +158,8 @@ function getTagClass(label) {
   align-items: center;
   justify-content: space-between;
   padding: 8px 10px;
-  background: #fff;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-elevated);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   transition: all 0.2s ease;
   position: relative;
@@ -167,9 +167,9 @@ function getTagClass(label) {
 }
 
 .tx-item:hover {
-  border-color: #79b8ff;
+  border-color: var(--color-primary);
   transform: scale(1.02);
-  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.15);
+  box-shadow: var(--shadow-sm);
   z-index: 10;
 }
 
@@ -183,7 +183,7 @@ function getTagClass(label) {
 
 .mono {
   font-family: monospace;
-  color: #6366f1;
+  color: var(--color-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -209,82 +209,8 @@ function getTagClass(label) {
   height: 100%;
 }
 
-/* 自定义交易类型标签颜色 */
-:deep(.el-tag.tag-mint-bronze) {
-  background-color: #f0f4f8;
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #6366f1;
-}
-
-:deep(.el-tag.tag-mint-silver) {
-  background-color: #f5f5f5;
-  border-color: #d9d9d9;
-  color: #595959;
-}
-
-:deep(.el-tag.tag-mint-gold) {
-  background-color: #fff8e6;
-  border-color: #ffd591;
-  color: #856404;
-}
-
-:deep(.el-tag.tag-burn) {
-  background-color: #fff2f0;
-  border-color: #ffccc7;
-  color: #a8071a;
-}
-
-:deep(.el-tag.tag-transfer) {
-  background-color: #fff7e6;
-  border-color: #ffd8b8;
-  color: #d46b08;
-}
-
-:deep(.el-tag.tag-withdraw) {
-  background-color: #f9f0ff;
-  border-color: #d3adf7;
-  color: #722ed1;
-}
-
-:deep(.el-tag.tag-post) {
-  background-color: #e6fffb;
-  border-color: #87e8de;
-  color: #08979c;
-}
-
-:deep(.el-tag.tag-comment) {
-  background-color: #f0f5ff;
-  border-color: #adc6ff;
-  color: #1d39c4;
-}
-
-:deep(.el-tag.tag-initial) {
-  background-color: #f9f5ff;
-  border-color: #b37feb;
-  color: #531dab;
-}
-
-:deep(.el-tag.tag-creator) {
-  background-color: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #6366f1;
-}
-
-:deep(.el-tag.tag-interact) {
-  background-color: rgba(139, 92, 246, 0.1);
-  border-color: rgba(139, 92, 246, 0.3);
-  color: #8b5cf6;
-}
-
-:deep(.el-tag.tag-transfer-token) {
-  background-color: rgba(6, 182, 212, 0.1);
-  border-color: rgba(6, 182, 212, 0.3);
-  color: #06b6d4;
-}
-
-:deep(.el-tag.tag-default) {
-  background-color: rgba(99, 102, 241, 0.1);
-  border-color: rgba(99, 102, 241, 0.3);
-  color: #6366f1;
+/* 暗黑模式样式 */
+html.dark .tx-item {
+  background: var(--color-background-mute);
 }
 </style>

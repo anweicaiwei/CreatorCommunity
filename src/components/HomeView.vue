@@ -1,6 +1,6 @@
 <script setup>
-import { inject } from 'vue'
-import { QuestionFilled, Loading } from '@element-plus/icons-vue'
+import { inject, ref } from 'vue'
+import { QuestionFilled, Loading, Sunny, Moon } from '@element-plus/icons-vue'
 import WalletSection from '@/components/WalletSection.vue'
 import DeploySection from '@/components/DeploySection.vue'
 import ChainDataSection from '@/components/ChainDataSection.vue'
@@ -9,6 +9,24 @@ import RewardSection from '@/components/RewardSection.vue'
 import PostSection from '@/components/PostSection.vue'
 import NFTSection from '@/components/NFTSection.vue'
 import AdminSection from '@/components/AdminSection.vue'
+
+const STORAGE_KEY = 'creatorcommunity-dark-mode'
+const isDark = ref(localStorage.getItem(STORAGE_KEY) === 'true')
+
+function toggleDark() {
+  isDark.value = !isDark.value
+  if (isDark.value) {
+    document.documentElement.classList.add('dark')
+    localStorage.setItem(STORAGE_KEY, 'true')
+  } else {
+    document.documentElement.classList.remove('dark')
+    localStorage.setItem(STORAGE_KEY, 'false')
+  }
+}
+
+if (isDark.value) {
+  document.documentElement.classList.add('dark')
+}
 
 const readData = inject('readData')
 const readError = inject('readError')
@@ -48,16 +66,22 @@ const isCorrectNetwork = inject('isCorrectNetwork')
   <div class="app-page">
     <div class="app-header">
       <h1 class="app-title">CreatorCommunity 合约交互</h1>
-      <router-link class="manual-link" to="/CreatorCommunity/manual">
-        <el-icon><QuestionFilled /></el-icon>
-        <span>用户手册</span>
-      </router-link>
+      <div class="header-actions">
+        <router-link class="manual-link" to="/CreatorCommunity/manual">
+          <el-icon><QuestionFilled /></el-icon>
+          <span>用户手册</span>
+        </router-link>
+        <el-button class="theme-toggle" circle @click="toggleDark">
+          <el-icon v-if="isDark"><Sunny /></el-icon>
+          <el-icon v-else><Moon /></el-icon>
+        </el-button>
+      </div>
     </div>
 
     <div class="layout-grid">
       <div class="left-col">
         <WalletSection
-          :is-connected="isConnected" :is-initializing="isInitializing"
+          :is-dark="isDark" :is-connected="isConnected" :is-initializing="isInitializing"
           :is-correct-network="isCorrectNetwork" :is-owner="isOwner"
           :current-network="currentNetwork" :account="account" :chain-id="chainId" :error="error"
           :has-addresses="hasAddresses" :deploy-status="deployStatus"
@@ -154,18 +178,56 @@ const isCorrectNetwork = inject('isCorrectNetwork')
 .app-header {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 20px;
   margin-bottom: 24px;
   flex-wrap: wrap;
   padding: 16px 24px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
-  border: 1px solid rgba(99, 102, 241, 0.12);
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.theme-toggle {
+  background: rgba(99, 102, 241, 0.06);
+  border: 1px solid var(--color-border-hover);
+  transition: all 0.2s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  color: var(--color-text-inverse);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-primary);
+}
+
+/* 暗黑模式下的头部样式 */
+html.dark .app-header {
+  background: var(--gradient-surface);
+  border: 1px solid var(--color-border-hover);
+}
+
+html.dark .theme-toggle {
+  background: rgba(167, 139, 250, 0.15);
+  border-color: rgba(167, 139, 250, 0.45);
+  color: var(--color-primary-hover);
+}
+
+html.dark .theme-toggle:hover {
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
 }
 
 .app-title {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -179,23 +241,23 @@ const isCorrectNetwork = inject('isCorrectNetwork')
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #6366f1;
+  color: var(--color-primary);
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   padding: 8px 16px;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  border: 1px solid var(--color-border-hover);
   border-radius: 8px;
   background: rgba(99, 102, 241, 0.06);
   transition: all 0.2s ease;
 }
 
 .manual-link:hover {
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--gradient-primary);
   border-color: transparent;
-  color: #fff;
+  color: var(--color-text-inverse);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.25);
+  box-shadow: var(--shadow-primary);
 }
 
 .layout-grid {
@@ -256,13 +318,13 @@ const isCorrectNetwork = inject('isCorrectNetwork')
   align-items: center;
   justify-content: center;
   padding: 60px 20px;
-  color: #666;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
 .loading-state .loading-icon {
   margin-bottom: 16px;
-  color: #409eff;
+  color: var(--color-primary);
   animation: rotate 1s linear infinite;
 }
 
@@ -284,11 +346,35 @@ const isCorrectNetwork = inject('isCorrectNetwork')
   height: 100%;
 }
 
-:deep(.el-descriptions__label) { color: #4a6b8a; font-weight: 500; }
+:deep(.el-descriptions__label) {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+html.dark :deep(.el-descriptions__label) {
+  color: var(--color-primary-hover);
+}
 
 :deep(.el-table) {
   --el-table-border-color: #e4f2fe;
   --el-table-header-bg-color: #f0f8ff;
+}
+
+html.dark :deep(.el-table) {
+  --el-table-border-color: rgba(167, 139, 250, 0.3);
+  --el-table-header-bg-color: rgba(30, 41, 59, 0.8);
+}
+
+/* 暗黑模式下的 manual-link */
+html.dark .manual-link {
+  color: var(--color-primary-hover);
+  border-color: rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.12);
+}
+
+html.dark .manual-link:hover {
+  background: var(--gradient-primary);
+  color: var(--color-text-inverse);
 }
 
 @media (max-width: 1024px) {

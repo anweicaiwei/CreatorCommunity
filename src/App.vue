@@ -956,16 +956,39 @@ provide('emit', (event, ...args) => {
 .el-scrollbar__thumb:hover {
   background-color: rgba(99, 102, 241, 0.4) !important;
 }
+
+html.dark .el-scrollbar__thumb {
+  background-color: rgba(129, 140, 248, 0.4) !important;
+}
+
+html.dark .el-scrollbar__thumb:hover {
+  background-color: rgba(165, 180, 252, 0.6) !important;
+}
 </style>
 
 <style>
-.el-message .tx-link { color: #409eff; text-decoration: none; margin-left: 6px; font-size: 12px; word-break: break-all; }
-.el-message .tx-link:hover { text-decoration: underline; }
+.el-message .tx-link { 
+  color: var(--color-accent); 
+  text-decoration: none; 
+  margin-left: 6px; 
+  font-size: 12px; 
+  word-break: break-all; 
+}
+
+.el-message .tx-link:hover { 
+  text-decoration: underline; 
+}
 
 .el-scrollbar__thumb {
   background-color: rgba(99, 102, 241, 0.25) !important;
 }
+
 .el-scrollbar__thumb:hover {
   background-color: rgba(99, 102, 241, 0.4) !important;
+}
+
+/* 暗黑模式下的样式补充 */
+html.dark .el-message .tx-link {
+  color: var(--color-accent);
 }
 </style>

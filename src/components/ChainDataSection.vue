@@ -122,16 +122,16 @@ const categorizedData = computed(() => {
 }
 
 .data-category-card {
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
   padding: 14px;
   transition: all 0.2s ease;
 }
 
 .data-category-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
 }
 
 .data-category-header {
@@ -140,7 +140,7 @@ const categorizedData = computed(() => {
   gap: 10px;
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .data-category-icon {
@@ -152,13 +152,13 @@ const categorizedData = computed(() => {
   justify-content: center;
   font-size: 16px;
   background: rgba(99, 102, 241, 0.1);
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .data-category-title {
   font-size: 14px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .data-category-items {
@@ -175,18 +175,18 @@ const categorizedData = computed(() => {
 }
 
 .data-item:not(:last-child) {
-  border-bottom: 1px dashed rgba(99, 102, 241, 0.08);
+  border-bottom: 1px dashed var(--color-border);
 }
 
 .data-item-label {
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .data-item-value {
   font-size: 13px;
   font-weight: 500;
-  color: #1e1b4b;
+  color: var(--color-text);
   text-align: right;
   max-width: 55%;
   word-break: break-all;
@@ -198,18 +198,18 @@ const categorizedData = computed(() => {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  color: #666;
+  color: var(--color-text-muted);
 }
 
 .reconnect-spinner {
-  color: #409eff;
+  color: var(--color-primary);
   animation: spin 1s linear infinite;
   margin-bottom: 12px;
 }
 
 .reconnect-text {
   font-size: 14px;
-  color: #909399;
+  color: var(--color-text-muted);
 }
 
 @keyframes spin {

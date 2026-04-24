@@ -30,7 +30,7 @@ function shorten(addr) {
     <div v-if="!hasAddresses" class="deploy-prompt">
       <div class="status-card">
         <div class="status-icon">
-          <el-icon :size="40" color="#909399"><Document /></el-icon>
+          <el-icon :size="40"><Document /></el-icon>
         </div>
         <div class="status-info">
           <h4>未检测到已部署的合约</h4>
@@ -40,14 +40,14 @@ function shorten(addr) {
 
       <div class="info-list">
         <div class="info-item">
-          <el-icon color="#6366f1"><Coin /></el-icon>
+          <el-icon><Coin /></el-icon>
           <span>CreatorToken (CTK)</span>
-          <el-tag size="small" type="info">ERC20 代币</el-tag>
+          <el-tag size="small" type="info" effect="plain">ERC20 代币</el-tag>
         </div>
         <div class="info-item">
-          <el-icon color="#6366f1"><Coin /></el-icon>
+          <el-icon><Coin /></el-icon>
           <span>CreatorNFT (CMN)</span>
-          <el-tag size="small" type="info">ERC721 勋章</el-tag>
+          <el-tag size="small" type="info" effect="plain">ERC721 勋章</el-tag>
         </div>
       </div>
 
@@ -74,14 +74,14 @@ function shorten(addr) {
       <div class="deploy-info-content">
         <div>
           <div class="status-active">
-            <el-icon color="#67C23A" :size="20"><CircleCheck /></el-icon>
+            <el-icon :size="20"><CircleCheck /></el-icon>
             <span>合约已部署</span>
           </div>
 
           <div class="contract-list">
             <div class="contract-item">
               <div class="contract-header">
-                <el-tag size="small" type="success">CTK</el-tag>
+                <el-tag size="small" type="success" effect="plain">CTK</el-tag>
                 <span class="contract-name">CreatorToken</span>
               </div>
               <el-text class="mono" size="small">{{ tokenAddress }}</el-text>
@@ -90,7 +90,7 @@ function shorten(addr) {
 
             <div class="contract-item">
               <div class="contract-header">
-                <el-tag size="small" type="warning">CMN</el-tag>
+                <el-tag size="small" type="warning" effect="plain">CMN</el-tag>
                 <span class="contract-name">CreatorNFT</span>
               </div>
               <el-text class="mono" size="small">{{ nftAddress }}</el-text>
@@ -110,7 +110,7 @@ function shorten(addr) {
               size="small"
             />
             <div class="note">
-              <el-icon color="#856404"><Warning /></el-icon>
+              <el-icon><Warning /></el-icon>
               <span>开启后，会显示代币转账和勋章转移功能</span>
             </div>
           </div>
@@ -126,7 +126,11 @@ function shorten(addr) {
 </template>
 
 <style scoped>
-.mono { font-family: monospace; color: #6366f1; word-break: break-all; }
+.mono { 
+  font-family: monospace; 
+  color: var(--color-primary); 
+  word-break: break-all; 
+}
 
 .deploy-prompt {
   display: flex;
@@ -139,8 +143,8 @@ function shorten(addr) {
   align-items: center;
   gap: 16px;
   padding: 16px;
-  background: linear-gradient(135deg, #f0f9eb 0%, #e8f5e1 100%);
-  border: 1px solid #d4edda;
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.15);
   border-radius: 10px;
 }
 
@@ -148,33 +152,34 @@ function shorten(addr) {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-background-elevated);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text-muted);
 }
 
 .status-info h4 {
   margin: 0 0 4px 0;
   font-size: 15px;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .status-info p {
   margin: 0;
   font-size: 12px;
-  color: #64748b;
+  color: var(--color-text-muted);
 }
 
 .info-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  background: #f8fafc;
+  background: var(--color-background-soft);
   padding: 12px;
   border-radius: 8px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--color-border);
 }
 
 .info-item {
@@ -182,7 +187,11 @@ function shorten(addr) {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--color-text-muted);
+}
+
+.info-item .el-icon {
+  color: var(--color-primary);
 }
 
 .deploy-btn {
@@ -190,6 +199,12 @@ function shorten(addr) {
   height: 44px;
   font-size: 15px;
   margin-top: 8px;
+  background: var(--gradient-primary);
+  border: none;
+}
+
+.deploy-btn:hover:not(:disabled) {
+  background: var(--gradient-primary-hover);
 }
 
 .deploy-info {
@@ -216,7 +231,7 @@ function shorten(addr) {
   margin-bottom: 16px;
   font-size: 14px;
   font-weight: 500;
-  color: #10b981;
+  color: var(--color-success);
 }
 
 .contract-list {
@@ -227,8 +242,8 @@ function shorten(addr) {
 
 .contract-item {
   padding: 12px;
-  background: #f8fafc;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  background: var(--color-background-soft);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -243,7 +258,7 @@ function shorten(addr) {
 
 .contract-name {
   font-weight: 500;
-  color: #1e1b4b;
+  color: var(--color-text);
   font-size: 14px;
 }
 
@@ -258,12 +273,27 @@ function shorten(addr) {
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #856404;
+  color: var(--color-warning);
+}
+
+.note .el-icon {
+  color: var(--color-warning);
 }
 
 .danger-btn {
   width: 100%;
   margin-top: 16px;
   height: 40px;
+}
+
+/* 暗黑模式样式 */
+html.dark .status-card {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+html.dark .status-icon {
+  background: var(--color-background-mute);
+  color: var(--color-text-muted);
 }
 </style>

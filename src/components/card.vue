@@ -9,16 +9,16 @@ import {
   DataAnalysis,
   Setting,
   Refresh
-} from '@element-plus/icons-vue'
+} from '@element-plus/icons-vue';
 
 const props = defineProps({
   title: { type: String, default: '' },
   icon: { type: String, default: '' },
   refreshBtn: { type: Boolean, default: false },
   refreshLoading: { type: Boolean, default: false }
-})
+});
 
-const emit = defineEmits(['refresh'])
+const emit = defineEmits(['refresh']);
 
 // 图标名称到组件的映射
 const iconMap = {
@@ -31,9 +31,9 @@ const iconMap = {
   DataAnalysis,
   Setting,
   Refresh
-}
+};
 
-defineSlots()
+defineSlots();
 </script>
 
 <template>
@@ -70,11 +70,11 @@ defineSlots()
 .light-card {
   --el-card-header-padding: 14px 20px;
   --el-card-padding: 20px;
-  border: 1px solid rgba(99, 102, 241, 0.15);
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #f8fafc;
-  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.06);
-  transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s;
+  background-color: var(--color-background-soft);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s, background-color 0.3s;
   position: relative;
   z-index: 0;
   height: 100%;
@@ -90,14 +90,14 @@ defineSlots()
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa);
+  background: var(--gradient-primary);
   opacity: 0.9;
   border-radius: 12px 12px 0 0;
 }
 
 .light-card:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.12);
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -121,30 +121,35 @@ defineSlots()
 
 .card-icon {
   font-size: 20px;
-  color: #6366f1;
+  color: var(--color-primary);
 }
 
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  color: #1e1b4b;
+  color: var(--color-text);
 }
 
 .card-refresh-btn {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   border: none;
-  color: #fff;
+  color: var(--color-text-inverse);
   font-weight: 500;
   padding: 8px 12px;
 }
 
 .card-refresh-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  background: var(--gradient-primary-hover);
 }
 
 .card-refresh-btn {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+
+/* 暗黑模式覆盖 */
+html.dark .light-card::before {
+  background: var(--gradient-primary);
 }
 </style>
