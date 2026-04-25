@@ -1,0 +1,56 @@
+{
+  "title": "Admin Functions",
+  "pools": {
+    "overview": "Token Pool Overview",
+    "creator": "Creator Pool",
+    "interact": "Interaction Pool",
+    "nft": "NFT Pool",
+    "nft_balance": "NFT Contract Balance",
+    "popover_title": "Notice",
+    "popover_content": "When the contract is deployed, all tokens in the NFT pool have already been transferred to the NFT contract"
+  },
+  "reward": {
+    "title": "Reward Distribution",
+    "creator_button": "Distribute tokens from Creator Pool",
+    "interact_button": "Distribute tokens from Interaction Pool"
+  },
+  "price": {
+    "title": "Medal Price Management",
+    "reset_title": "Reset Initial Prices",
+    "reset_desc": "Bronze:1000 / Silver:5000 / Gold:10000",
+    "adjust_title": "Random Price Adjustment ±10%",
+    "adjust_desc": "System randomly adjusts NFT prices for each tier"
+  },
+  "withdraw": {
+    "title": "Withdraw NFT Contract Tokens",
+    "withdrawable": "Withdrawable Amount",
+    "overflow": "Overflow Amount",
+    "placeholder": "Withdrawal amount",
+    "withdraw": "Withdraw",
+    "withdraw_all": "Withdraw All",
+    "withdraw_overflow": "Withdraw Overflow",
+    "note": "Withdrawn CTK tokens will be allocated to the Creator Pool and Interaction Pool at a <strong>7:3</strong> ratio"
+  },
+  "message": {
+    "fill_address_amount": "Please enter an address and amount",
+    "confirm_send_creator": "Confirm distributing {amount} CTK to {address} (Creator Pool)?",
+    "confirm_send_interact": "Confirm distributing {amount} CTK to {address} (Interaction Pool)?",
+    "confirm_send_title": "Confirm Distribution",
+    "confirm_reset_price": "Confirm resetting all medal prices to their initial values?",
+    "confirm_reset_title": "Confirm Reset",
+    "confirm_adjust_price": "Confirm randomly adjusting medal prices (±10%)?",
+    "confirm_adjust_title": "Confirm Price Adjustment",
+    "invalid_withdraw_amount": "Please enter a valid withdrawal amount",
+    "confirm_withdraw": "Confirm withdrawing {amount} CTK from the NFT contract?\nWithdrawn tokens will be allocated to the Creator Pool and Interaction Pool at a 7:3 ratio",
+    "confirm_withdraw_all": "Confirm withdrawing the full withdrawable amount?\nWithdrawn tokens will be allocated to the Creator Pool and Interaction Pool at a 7:3 ratio",
+    "confirm_withdraw_overflow": "Confirm withdrawing overflow tokens?\nWithdrawn tokens will be allocated to the Creator Pool and Interaction Pool at a 7:3 ratio",
+    "confirm_withdraw_title": "Confirm Withdraw",
+    "creator_reward_label": "Creator Pool Distribution",
+    "interact_reward_label": "Interaction Pool Distribution",
+    "reset_price_label": "Reset Medal Prices",
+    "adjust_price_label": "Random Price Adjustment",
+    "withdraw_label": "Withdraw {amount} CTK",
+    "withdraw_all_label": "Withdraw All Available CTK",
+    "withdraw_overflow_label": "Withdraw Overflow CTK"
+  }
+}

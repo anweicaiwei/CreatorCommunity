@@ -1,0 +1,38 @@
+{
+  "title": "合约部署",
+  "status": {
+    "not_found": "未检测到已部署的合约",
+    "active": "合约已部署",
+    "deploying": "部署中...",
+    "confirming": "等待确认...",
+    "fetching_nft": "获取NFT地址...",
+    "success": "部署成功!",
+    "failed": "部署失败"
+  },
+  "desc": {
+    "deploy_pair": "部署 CreatorToken 合约将自动创建配套的 CreatorNFT 合约",
+    "erc20": "ERC20 代币",
+    "erc721": "ERC721 勋章",
+    "transfer_hint": "开启后，会显示代币转账和勋章转移功能"
+  },
+  "button": {
+    "deploy": "部署合约",
+    "disable": "停用合约",
+    "view_explorer": "在区块浏览器查看",
+    "transfer_feature": "转移功能"
+  },
+  "message": {
+    "connect_wallet_first": "请先连接钱包",
+    "switch_correct_network": "请切换到正确的网络",
+    "deploying": "正在部署 CreatorToken + CreatorNFT 合约...",
+    "success_token": "部署成功! Token: ",
+    "clear_confirm": "确认停用合约？这将清除所有已部署的合约地址和相关数据。",
+    "clear_title": "确认停用",
+    "clear_confirm_button": "确认停用"
+  },
+  "error": {
+    "wallet_not_connected": "钱包未连接，无法部署",
+    "rejected": "您取消了部署交易",
+    "insufficient_funds": "ETH 余额不足以支付部署燃气费"
+  }
+}

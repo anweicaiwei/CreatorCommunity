@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '@/components/HomeView.vue'
 import ManualView from '@/components/ManualView.vue'
+import { i18n } from '@/locales'
 
 const routes = [
   {
@@ -10,7 +11,7 @@ const routes = [
   },
   {
     path: '/CreatorCommunity/manual',
-    redirect: '/CreatorCommunity/manual-zh'
+    redirect: () => `/CreatorCommunity/manual-${i18n.global.locale.value}`
   },
   {
     path: '/CreatorCommunity/manual-zh',

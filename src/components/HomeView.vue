@@ -1,5 +1,6 @@
 <script setup>
 import { inject, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { QuestionFilled, Loading, Sunny, Moon } from '@element-plus/icons-vue'
 import WalletSection from '@/components/WalletSection.vue'
 import DeploySection from '@/components/DeploySection.vue'
@@ -9,6 +10,9 @@ import RewardSection from '@/components/RewardSection.vue'
 import PostSection from '@/components/PostSection.vue'
 import NFTSection from '@/components/NFTSection.vue'
 import AdminSection from '@/components/AdminSection.vue'
+import { setLocale } from '@/locales'
+
+const { t, locale } = useI18n()
 
 const STORAGE_KEY = 'creatorcommunity-dark-mode'
 const isDark = ref(localStorage.getItem(STORAGE_KEY) === 'true')
@@ -60,17 +64,30 @@ const tokenAddress = inject('tokenAddress')
 const nftAddress = inject('nftAddress')
 const isInitializing = inject('isInitializing')
 const isCorrectNetwork = inject('isCorrectNetwork')
+
+function switchLocale(value) {
+  setLocale(value)
+}
 </script>
 
 <template>
   <div class="app-page">
     <div class="app-header">
-      <h1 class="app-title">CreatorCommunity 合约交互</h1>
+      <h1 class="app-title">CreatorCommunity {{ t('common.app.title') }}</h1>
       <div class="header-actions">
         <router-link class="manual-link" to="/CreatorCommunity/manual">
           <el-icon><QuestionFilled /></el-icon>
-          <span>用户手册</span>
+          <span>{{ t('modules.manual.title') }}</span>
         </router-link>
+        <el-segmented
+          class="language-switch"
+          :model-value="locale"
+          :options="[
+            { label: t('common.language.zh'), value: 'zh' },
+            { label: t('common.language.en'), value: 'en' }
+          ]"
+          @update:model-value="switchLocale"
+        />
         <el-button class="theme-toggle" circle @click="toggleDark">
           <el-icon v-if="isDark"><Sunny /></el-icon>
           <el-icon v-else><Moon /></el-icon>
@@ -97,7 +114,7 @@ const isCorrectNetwork = inject('isCorrectNetwork')
         <template v-if="isConnected && !isDataLoaded">
           <div class="loading-state">
             <el-icon class="loading-icon" :size="32"><Loading /></el-icon>
-            <span>{{ dataLoadingProgress || '正在加载...' }}</span>
+            <span>{{ dataLoadingProgress || t('common.message.loading') }}</span>
           </div>
         </template>
 
@@ -199,6 +216,11 @@ const isCorrectNetwork = inject('isCorrectNetwork')
   background: rgba(99, 102, 241, 0.06);
   border: 1px solid var(--color-border-hover);
   transition: all 0.2s ease;
+}
+
+.language-switch {
+  --el-segmented-item-selected-bg-color: var(--color-primary);
+  --el-segmented-item-selected-color: var(--color-text-inverse);
 }
 
 .theme-toggle:hover {

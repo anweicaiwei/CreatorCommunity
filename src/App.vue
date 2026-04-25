@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, h, provide, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { useWallet } from '@/composables/useWallet'
 import { useTransaction } from '@/composables/useTransaction'
 import { useContractAddress } from '@/composables/useContractAddress'
@@ -10,6 +11,9 @@ import { formatTokenAmount, formatCooldown, getCooldownStatus, shortenAddress } 
 import { DECIMALS } from '@/utils/constants'
 import { NETWORK_CONFIG } from '@/contracts'
 import { ethers } from 'ethers'
+import { elementPlusLocale, t } from '@/locales'
+
+const { locale } = useI18n()
 
 const wallet = useWallet()
 const {
@@ -24,26 +28,26 @@ const {
 function disconnect() {
   ElMessageBox.confirm(
     h('div', null, [
-      h('p', { style: 'margin-bottom: 8px; font-weight: 600;' }, '确认断开钱包连接？'),
-      h('p', { style: 'margin-bottom: 4px; color: #e6a23c;' }, '以下缓存数据将被清除：'),
+      h('p', { style: 'margin-bottom: 8px; font-weight: 600;' }, t('modules.wallet.message.disconnect_confirm')),
+      h('p', { style: 'margin-bottom: 4px; color: #e6a23c;' }, t('modules.wallet.message.disconnect_clear')),
       h('ul', { style: 'margin: 0 0 12px 20px; padding-left: 0; color: #909399; font-size: 13px;' }, [
-        h('li', null, '账户余额、持仓信息'),
-        h('li', null, '勋章持有数量和增益数据'),
-        h('li', null, '发帖/评论冷却状态'),
-        h('li', null, '待提现奖励数据'),
-        h('li', null, '自定义设置（显示偏好等）')
+        h('li', null, t('modules.wallet.message.cache_balance')),
+        h('li', null, t('modules.wallet.message.cache_nft')),
+        h('li', null, t('modules.wallet.message.cache_cooldown')),
+        h('li', null, t('modules.wallet.message.cache_rewards')),
+        h('li', null, t('modules.wallet.message.cache_settings'))
       ]),
-      h('p', { style: 'margin-bottom: 0; color: #67c23a;' }, '以下缓存数据将保留：'),
+      h('p', { style: 'margin-bottom: 0; color: #67c23a;' }, t('modules.wallet.message.disconnect_keep')),
       h('ul', { style: 'margin: 0; color: #909399; font-size: 13px;' }, [
-        h('li', null, '交易历史记录'),
-        h('li', null, '已发布的帖子数据'),
-        h('li', null, '池子配置（管理员）')
+        h('li', null, t('modules.wallet.message.keep_tx')),
+        h('li', null, t('modules.wallet.message.keep_posts')),
+        h('li', null, t('modules.wallet.message.keep_pools'))
       ])
     ]),
-    '断开钱包连接',
+    t('modules.wallet.message.disconnect_title'),
     {
-      confirmButtonText: '确认断开',
-      cancelButtonText: '取消',
+      confirmButtonText: t('modules.wallet.message.disconnect_confirm_button'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning',
       draggable: true
     }
@@ -69,7 +73,7 @@ function disconnect() {
     saveStore(Number(chainId.value), tokenAddress.value)
     
     walletDisconnect()
-    ElMessage({ message: '已断开钱包连接', type: 'info', duration: 2000 })
+    ElMessage({ message: t('modules.wallet.message.disconnected'), type: 'info', duration: 2000 })
   }).catch(() => {
     // 取消操作
   })
@@ -95,7 +99,7 @@ const canInteract = computed(() =>
 
 // 数据加载状态 - 只有当所有必要数据加载完成后才显示其他模块
 const isDataLoaded = ref(false)
-const dataLoadingProgress = ref('准备中...')
+const dataLoadingProgress = ref(t('common.status.pending') + '...')
 
 // 初始化数据存储
 function initStore() {
@@ -118,9 +122,9 @@ function toggleTransfer() {
 const txList = computed(() => loadTxHistory())
 
 async function handleDeploy() {
-  if (!isConnected.value) { ElMessage.error('请先连接钱包'); return }
-  if (!isCorrectNetwork.value) { ElMessage.error('请切换到正确的网络'); return }
-  ElMessage({ message: '正在部署 CreatorToken + CreatorNFT 合约...', type: 'warning', duration: 0 })
+  if (!isConnected.value) { ElMessage.error(t('modules.deploy.message.connect_wallet_first')); return }
+  if (!isCorrectNetwork.value) { ElMessage.error(t('modules.deploy.message.switch_correct_network')); return }
+  ElMessage({ message: t('modules.deploy.message.deploying'), type: 'warning', duration: 0 })
   try {
     const provider = new ethers.BrowserProvider(window.ethereum)
     const signer = await provider.getSigner()
@@ -129,7 +133,7 @@ async function handleDeploy() {
       ElMessage.closeAll()
       ElMessage({
         message: h('div', null, [
-          h('span', null, '部署成功! Token: '), h('code', null, result.tokenAddress),
+          h('span', null, t('modules.deploy.message.success_token')), h('code', null, result.tokenAddress),
           h('br'),
           h('span', null, 'NFT: '), h('code', null, result.nftAddress)
         ]),
@@ -142,16 +146,16 @@ async function handleDeploy() {
     }
   } catch (e) {
     ElMessage.closeAll()
-    const msg = deployError.value || e.reason || e.message || '部署失败'
+    const msg = deployError.value || e.reason || e.message || t('modules.deploy.status.failed')
     ElMessage({ message: msg, type: 'error', duration: 8000 })
   }
 }
 
 async function handleClearAddresses() {
   await ElMessageBox.confirm(
-    '确认停用合约？这将清除所有已部署的合约地址和相关数据。',
-    '确认停用',
-    { confirmButtonText: '确认停用', cancelButtonText: '取消', type: 'warning' }
+    t('modules.deploy.message.clear_confirm'),
+    t('modules.deploy.message.clear_title'),
+    { confirmButtonText: t('modules.deploy.message.clear_confirm_button'), cancelButtonText: t('common.button.cancel'), type: 'warning' }
   )
   clearAllWithChainToken(Number(chainId.value), tokenAddress.value)
   resetDeploy()
@@ -161,24 +165,24 @@ async function handleClearAddresses() {
   showTransfer.value = false
 }
 
-const labelMap = {
-  ctkBalance: 'CTK余额',
-  hasClaimedInitial: '已领初始奖励',
-  postCooldown: '发帖冷却',
-  commentCooldown: '评论冷却',
-  nftBoost: '勋章总增益(%)',
-  bronzePrice: '青铜勋章价格',
-  silverPrice: '白银勋章价格',
-  goldPrice: '黄金勋章价格',
-  nftCount: '总持有勋章数量',
-  myBronze: '持有青铜勋章数量',
-  mySilver: '持有白银勋章数量',
-  myGold: '持有黄金勋章数量',
-  pendingPostReward: '待提现的发帖奖励',
-  pendingCommentReward: '待提现的评论奖励',
-  pendingInitialReward: '待提现的初始奖励',
-  pendingTotalReward: '合计待提现奖励'
-}
+const labelMap = computed(() => ({
+  ctkBalance: t('modules.chain_data.field.ctk_balance'),
+  hasClaimedInitial: t('modules.chain_data.field.has_claimed_initial'),
+  postCooldown: t('modules.chain_data.field.post_cooldown'),
+  commentCooldown: t('modules.chain_data.field.comment_cooldown'),
+  nftBoost: t('modules.chain_data.field.nft_boost'),
+  bronzePrice: t('modules.chain_data.field.bronze_price'),
+  silverPrice: t('modules.chain_data.field.silver_price'),
+  goldPrice: t('modules.chain_data.field.gold_price'),
+  nftCount: t('modules.chain_data.field.nft_count'),
+  myBronze: t('modules.chain_data.field.my_bronze'),
+  mySilver: t('modules.chain_data.field.my_silver'),
+  myGold: t('modules.chain_data.field.my_gold'),
+  pendingPostReward: t('modules.chain_data.field.pending_post_reward'),
+  pendingCommentReward: t('modules.chain_data.field.pending_comment_reward'),
+  pendingInitialReward: t('modules.chain_data.field.pending_initial_reward'),
+  pendingTotalReward: t('modules.chain_data.field.pending_total_reward')
+}))
 
 const readData = ref({})
 const readError = ref(null)
@@ -217,6 +221,44 @@ function clearCooldownCache() {
   localStorage.removeItem(getCooldownKey('comment'))
 }
 
+function cooldownWaitingPrefix() {
+  return t('modules.chain_data.cooldown.waiting', { time: '' }).trim()
+}
+
+function isCooldownWaitingText(value) {
+  return typeof value === 'string' && (
+    value.startsWith(cooldownWaitingPrefix()) ||
+    value.startsWith('等待') ||
+    value.startsWith('Wait')
+  )
+}
+
+function formatCooldownText(type, remaining) {
+  const readyKey = type === 'post'
+    ? 'modules.chain_data.cooldown.ready_post'
+    : 'modules.chain_data.cooldown.ready_comment'
+  if (remaining <= 0) return t(readyKey)
+  return t('modules.chain_data.cooldown.waiting', { time: formatCooldown(remaining) })
+}
+
+function relocalizeCooldownLabels() {
+  const now = Date.now()
+  const nextData = { ...readData.value }
+  if (postCooldownEnd.value > now) {
+    nextData.postCooldown = formatCooldownText('post', postCooldownEnd.value - now)
+  } else if (nextData.postCooldown === '可发帖' || nextData.postCooldown === 'Can post' || isCooldownWaitingText(nextData.postCooldown)) {
+    nextData.postCooldown = formatCooldownText('post', 0)
+  }
+
+  if (commentCooldownEnd.value > now) {
+    nextData.commentCooldown = formatCooldownText('comment', commentCooldownEnd.value - now)
+  } else if (nextData.commentCooldown === '可评论' || nextData.commentCooldown === 'Can comment' || isCooldownWaitingText(nextData.commentCooldown)) {
+    nextData.commentCooldown = formatCooldownText('comment', 0)
+  }
+
+  readData.value = nextData
+}
+
 // 从 localStorage 恢复冷却状态，若仍有剩余时间则启动倒计时
 function restoreCooldownFromCache() {
   const postEnd = loadCooldownEnd('post')
@@ -224,22 +266,22 @@ function restoreCooldownFromCache() {
   const now = Date.now()
   if (postEnd > now) {
     postCooldownEnd.value = postEnd
-    readData.value = { ...readData.value, postCooldown: `等待 ${formatCooldown(postEnd - now)}` }
+    readData.value = { ...readData.value, postCooldown: formatCooldownText('post', postEnd - now) }
   } else {
     postCooldownEnd.value = 0
     saveCooldownEnd('post', 0) // 已过期，清除缓存
-    if (readData.value.postCooldown?.startsWith('等待')) {
-      readData.value = { ...readData.value, postCooldown: '可发帖' }
+    if (isCooldownWaitingText(readData.value.postCooldown)) {
+      readData.value = { ...readData.value, postCooldown: formatCooldownText('post', 0) }
     }
   }
   if (commentEnd > now) {
     commentCooldownEnd.value = commentEnd
-    readData.value = { ...readData.value, commentCooldown: `等待 ${formatCooldown(commentEnd - now)}` }
+    readData.value = { ...readData.value, commentCooldown: formatCooldownText('comment', commentEnd - now) }
   } else {
     commentCooldownEnd.value = 0
     saveCooldownEnd('comment', 0) // 已过期，清除缓存
-    if (readData.value.commentCooldown?.startsWith('等待')) {
-      readData.value = { ...readData.value, commentCooldown: '可评论' }
+    if (isCooldownWaitingText(readData.value.commentCooldown)) {
+      readData.value = { ...readData.value, commentCooldown: formatCooldownText('comment', 0) }
     }
   }
   if (postCooldownEnd.value > now || commentCooldownEnd.value > now) {
@@ -253,19 +295,19 @@ function startCooldownTimer() {
     const now = Date.now()
     if (postCooldownEnd.value > now) {
       const remaining = postCooldownEnd.value - now
-      readData.value = { ...readData.value, postCooldown: `等待 ${formatCooldown(remaining)}` }
+      readData.value = { ...readData.value, postCooldown: formatCooldownText('post', remaining) }
     } else if (postCooldownEnd.value > 0) {
       postCooldownEnd.value = 0
       saveCooldownEnd('post', 0) // 倒计时归零，清除缓存
-      readData.value = { ...readData.value, postCooldown: '可发帖' }
+      readData.value = { ...readData.value, postCooldown: formatCooldownText('post', 0) }
     }
     if (commentCooldownEnd.value > now) {
       const remaining = commentCooldownEnd.value - now
-      readData.value = { ...readData.value, commentCooldown: `等待 ${formatCooldown(remaining)}` }
+      readData.value = { ...readData.value, commentCooldown: formatCooldownText('comment', remaining) }
     } else if (commentCooldownEnd.value > 0) {
       commentCooldownEnd.value = 0
       saveCooldownEnd('comment', 0) // 倒计时归零，清除缓存
-      readData.value = { ...readData.value, commentCooldown: '可评论' }
+      readData.value = { ...readData.value, commentCooldown: formatCooldownText('comment', 0) }
     }
     // 两个冷却都归零时停止定时器
     if (postCooldownEnd.value === 0 && commentCooldownEnd.value === 0) {
@@ -328,7 +370,7 @@ async function refreshData() {
   readLoading.value = true
   readError.value = null
   if (!tokenContractRead.value || !nftContractRead.value) {
-    readError.value = '合约实例未初始化'
+    readError.value = t('common.message.contract_not_initialized')
     readLoading.value = false
     return
   }
@@ -372,8 +414,8 @@ async function refreshData() {
     const data = {
       ctkBalance: formatTokenAmount(balance),
       hasClaimedInitial: hasClaimed,
-      postCooldown: postCD.ready ? '可发帖' : `等待 ${formatCooldown(postCD.remaining)}`,
-      commentCooldown: commentCD.ready ? '可评论' : `等待 ${formatCooldown(commentCD.remaining)}`,
+      postCooldown: postCD.ready ? t('modules.chain_data.cooldown.ready_post') : t('modules.chain_data.cooldown.waiting', { time: formatCooldown(postCD.remaining) }),
+      commentCooldown: commentCD.ready ? t('modules.chain_data.cooldown.ready_comment') : t('modules.chain_data.cooldown.waiting', { time: formatCooldown(commentCD.remaining) }),
       nftBoost: boost,
       bronzePrice: formatTokenAmount(bronzePrice),
       silverPrice: formatTokenAmount(silverPrice),
@@ -399,12 +441,12 @@ async function refreshData() {
     saveUserData(account.value, data)
     saveStore(Number(chainId.value), tokenAddress.value)
 
-    const parts = [`CTK: ${readData.value.ctkBalance} | 勋章: ${nftBalance} 枚`]
-    if (pendingRewards.total > 0n) parts.push(`| 待提现: ${formatTokenAmount(pendingRewards.total)} CTK`)
+    const parts = [t('modules.chain_data.summary.medal_count', { ctk: readData.value.ctkBalance, count: nftBalance })]
+    if (pendingRewards.total > 0n) parts.push(t('modules.chain_data.summary.pending', { amount: formatTokenAmount(pendingRewards.total) }))
     ElMessage({ message: parts.join(' '), type: 'success', duration: 3000 })
   } catch (e) {
     readError.value = e.message || String(e)
-    ElMessage({ message: `数据查询失败: ${readError.value}`, type: 'error', duration: 5000 })
+    ElMessage({ message: t('modules.chain_data.summary.query_failed', { message: readError.value }), type: 'error', duration: 5000 })
   } finally {
     readLoading.value = false
   }
@@ -451,19 +493,19 @@ async function refreshPools() {
 const fieldQueries = {
   ctkBalance: async (t, n, addr) => ({ ctkBalance: formatTokenAmount(await t.balanceOf(addr)) }),
   hasClaimedInitial: async (t, n, addr) => ({ hasClaimedInitial: await t.hasClaimedInitialReward(addr) }),
-  postCooldown: async (t, n, addr) => {
-    const lp = Number(await t.lastPostTime(addr)), iv = Number(await t.POST_INTERVAL())
+  postCooldown: async (token, n, addr) => {
+    const lp = Number(await token.lastPostTime(addr)), iv = Number(await token.POST_INTERVAL())
     const cd = getCooldownStatus(lp, iv * 1000)
     postCooldownEnd.value = cd.ready ? 0 : (lp * 1000 + iv * 1000)
     saveCooldownEnd('post', postCooldownEnd.value)
-    return { postCooldown: cd.ready ? '可发帖' : `等待 ${formatCooldown(cd.remaining)}` }
+    return { postCooldown: formatCooldownText('post', cd.remaining) }
   },
-  commentCooldown: async (t, n, addr) => {
-    const lc = Number(await t.lastCommentTime(addr)), iv = Number(await t.COMMENT_INTERVAL())
+  commentCooldown: async (token, n, addr) => {
+    const lc = Number(await token.lastCommentTime(addr)), iv = Number(await token.COMMENT_INTERVAL())
     const cd = getCooldownStatus(lc, iv * 1000)
     commentCooldownEnd.value = cd.ready ? 0 : (lc * 1000 + iv * 1000)
     saveCooldownEnd('comment', commentCooldownEnd.value)
-    return { commentCooldown: cd.ready ? '可评论' : `等待 ${formatCooldown(cd.remaining)}` }
+    return { commentCooldown: formatCooldownText('comment', cd.remaining) }
   },
   nftBoost: async (t, n, addr) => ({ nftBoost: Number(await t.calculateNFTBoost(addr)) }),
   bronzePrice: async (t, n, addr) => ({ bronzePrice: formatTokenAmount(await n.bronzePrice()) }),
@@ -518,7 +560,7 @@ async function refreshFields(keys) {
 const writeLoading = ref(false)
 
 function notifyTxPending(label) {
-  return ElMessage({ message: `${label} 处理中...`, type: 'warning', duration: 0 })
+  return ElMessage({ message: t('common.message.transaction_pending', { label }), type: 'warning', duration: 0 })
 }
 
 function notifyTxSuccess(hash, label) {
@@ -526,7 +568,7 @@ function notifyTxSuccess(hash, label) {
   const txUrl = NETWORK_CONFIG.blockExplorer ? `${NETWORK_CONFIG.blockExplorer}/tx/${hash}` : '#'
   ElMessage({
     message: h('div', null, [
-      h('span', null, `${label || '交易'} 成功! `),
+      h('span', null, t('common.message.transaction_success', { label: label || t('common.message.transaction') })),
       h('a', { href: txUrl, target: '_blank', class: 'tx-link' }, hash)
     ]),
     type: 'success',
@@ -538,17 +580,17 @@ function notifyTxSuccess(hash, label) {
 
 function notifyTxError(msg) {
   ElMessage.closeAll()
-  ElMessage({ message: msg || '未知错误', type: 'error', duration: 5000 })
+  ElMessage({ message: msg || t('common.message.unknown_error'), type: 'error', duration: 5000 })
 }
 
-async function doWrite(fn, refreshKeys = null, txLabel = '', onSuccess = null) {
+async function doWrite(fn, refreshKeys = null, txLabel = '', onSuccess = null, txMeta = null) {
   writeLoading.value = true
-  notifyTxPending(txLabel || '交易提交中...')
+  notifyTxPending(txLabel || t('common.message.transaction_pending', { label: t('common.message.transaction') }))
   try {
     const r = await tx.execute(fn)
     const hashStr = String(r.hash)
     if (txLabel && hashStr) {
-      addTxToHistory({ hash: hashStr, label: txLabel, timestamp: Date.now() })
+      addTxToHistory({ hash: hashStr, label: txLabel, label_key: txMeta?.key, label_params: txMeta?.params, timestamp: Date.now() })
       saveTxHistory(loadTxHistory())
       saveStore(Number(chainId.value), tokenAddress.value)
     }
@@ -557,7 +599,7 @@ async function doWrite(fn, refreshKeys = null, txLabel = '', onSuccess = null) {
     notifyTxSuccess(hashStr, txLabel)
     if (onSuccess) onSuccess()
   } catch (e) {
-    const errMsg = tx.errorMessage.value || e.message || '交易失败'
+    const errMsg = tx.errorMessage.value || e.message || t('common.message.transaction_failed')
     notifyTxError(errMsg)
   } finally {
     writeLoading.value = false
@@ -567,24 +609,24 @@ async function doWrite(fn, refreshKeys = null, txLabel = '', onSuccess = null) {
 // ==================== 业务函数 ====================
 
 async function testClaimInitialReward() {
-  if (await tokenContractRead.value.hasClaimedInitialReward(account.value)) { notifyTxError('已领取初始奖励'); return }
-  await doWrite(() => tokenContractWrite.value.claimInitialReward(), ['ctkBalance', 'hasClaimedInitial', 'pendingInitialReward', 'pendingTotalReward'], '领取初始奖励')
+  if (await tokenContractRead.value.hasClaimedInitialReward(account.value)) { notifyTxError(t('modules.reward.message.already_claimed')); return }
+  await doWrite(() => tokenContractWrite.value.claimInitialReward(), ['ctkBalance', 'hasClaimedInitial', 'pendingInitialReward', 'pendingTotalReward'], t('modules.reward.message.claim_initial_label'), null, { key: 'modules.tx_history.label.claim_initial' })
 }
 
 async function testRewardPost() {
   const lastPost = Number(await tokenContractRead.value.lastPostTime(account.value))
   const interval = Number(await tokenContractRead.value.POST_INTERVAL())
-  if (Date.now() / 1000 - lastPost < interval) { notifyTxError('发帖冷却中，请稍后'); return }
+  if (Date.now() / 1000 - lastPost < interval) { notifyTxError(t('modules.post.message.cooldown')); return }
   writeLoading.value = true
-  notifyTxPending('发帖提交中...')
+  notifyTxPending(t('modules.post.message.submit'))
   try {
     const r = await tx.execute(() => tokenContractWrite.value.rewardPost())
     const hashStr = String(r.hash)
     // 从交易回执中解析 PostRewardRecorded 事件获取 postId
     const postId = Number(r.postId || (Number(await tokenContractRead.value.postIdCounter()) - 1))
-    const txLabel = `发帖 POST_ID ${postId}`
+    const txLabel = t('modules.post.message.tx_label', { post_id: postId })
     if (hashStr) {
-      addTxToHistory({ hash: hashStr, label: txLabel, timestamp: Date.now() })
+      addTxToHistory({ hash: hashStr, label: txLabel, label_key: 'modules.tx_history.label.post', label_params: { post_id: postId }, timestamp: Date.now() })
       saveTxHistory(loadTxHistory())
       saveStore(Number(chainId.value), tokenAddress.value)
     }
@@ -592,7 +634,7 @@ async function testRewardPost() {
     notifyTxSuccess(hashStr, txLabel)
     if (postCooldownEnd.value > Date.now()) startCooldownTimer()
   } catch (e) {
-    const errMsg = tx.errorMessage.value || e.message || '交易失败'
+    const errMsg = tx.errorMessage.value || e.message || t('common.message.transaction_failed')
     notifyTxError(errMsg)
   } finally {
     writeLoading.value = false
@@ -603,209 +645,211 @@ async function testRewardComment(author, postId) {
   await doWrite(
     () => tokenContractWrite.value.rewardComment(author, postId),
     ['ctkBalance', 'commentCooldown', 'pendingCommentReward', 'pendingTotalReward'],
-    `评论帖子 POST_ID ${postId}`,
+    t('modules.comment.message.tx_label', { post_id: postId }),
     () => { if (commentCooldownEnd.value > Date.now()) startCooldownTimer() }
+    ,
+    { key: 'modules.tx_history.label.comment', params: { post_id: postId } }
   )
 }
 
 async function testMintBronze() {
   const price = await nftContractRead.value.bronzePrice()
   if (await tokenContractRead.value.balanceOf(account.value) < price) {
-    notifyTxError('CTK余额不足'); return
+    notifyTxError(t('modules.nft.message.insufficient_ctk')); return
   }
   try {
-    await ElMessageBox.confirm(`确认铸造青铜勋章？\n需消耗 ${formatTokenAmount(price)} CTK`, '确认铸造', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.nft.mint.confirm', { tier: t('modules.nft.tier.bronze'), price: formatTokenAmount(price) }), t('modules.nft.mint.confirm_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'info'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.mintBronzeNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], '铸造青铜勋章')
+  await doWrite(() => nftContractWrite.value.mintBronzeNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], t('modules.nft.message.mint_bronze_label'), null, { key: 'modules.tx_history.label.mint_bronze' })
   refreshPools()
 }
 
 async function testMintSilver() {
   const price = await nftContractRead.value.silverPrice()
   if (await tokenContractRead.value.balanceOf(account.value) < price) {
-    notifyTxError('CTK余额不足'); return
+    notifyTxError(t('modules.nft.message.insufficient_ctk')); return
   }
   try {
-    await ElMessageBox.confirm(`确认铸造白银勋章？\n需消耗 ${formatTokenAmount(price)} CTK`, '确认铸造', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.nft.mint.confirm', { tier: t('modules.nft.tier.silver'), price: formatTokenAmount(price) }), t('modules.nft.mint.confirm_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'info'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.mintSilverNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], '铸造白银勋章')
+  await doWrite(() => nftContractWrite.value.mintSilverNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], t('modules.nft.message.mint_silver_label'), null, { key: 'modules.tx_history.label.mint_silver' })
   refreshPools()
 }
 
 async function testMintGold() {
   const price = await nftContractRead.value.goldPrice()
   if (await tokenContractRead.value.balanceOf(account.value) < price) {
-    notifyTxError('CTK余额不足'); return
+    notifyTxError(t('modules.nft.message.insufficient_ctk')); return
   }
   try {
-    await ElMessageBox.confirm(`确认铸造黄金勋章？\n需消耗 ${formatTokenAmount(price)} CTK`, '确认铸造', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.nft.mint.confirm', { tier: t('modules.nft.tier.gold'), price: formatTokenAmount(price) }), t('modules.nft.mint.confirm_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'info'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.mintGoldNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], '铸造黄金勋章')
+  await doWrite(() => nftContractWrite.value.mintGoldNFT(), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], t('modules.nft.message.mint_gold_label'), null, { key: 'modules.tx_history.label.mint_gold' })
   refreshPools()
 }
 
 async function testBurnNFT(tokenId) {
   try {
     if ((await nftContractRead.value.ownerOf(tokenId)).toLowerCase() !== account.value.toLowerCase()) {
-      notifyTxError('您不是该勋章的所有者'); return
+      notifyTxError(t('modules.nft.message.not_owner')); return
     }
-  } catch { notifyTxError('该tokenId不存在'); return }
+  } catch { notifyTxError(t('modules.nft.message.token_not_found')); return }
   const rank = Number(await nftContractRead.value.nftRank(tokenId))
   const price = rank === 0 ? await nftContractRead.value.bronzePrice() : rank === 1 ? await nftContractRead.value.silverPrice() : await nftContractRead.value.goldPrice()
   const refund = (price * 80n) / 100n
   try {
     await ElMessageBox.confirm(
-      `确认销毁 NFT TOKEN_ID ${tokenId}？\n销毁后返还 ${formatTokenAmount(refund)} CTK（价值的80%）`,
-      '确认销毁',
-      { confirmButtonText: '确认销毁', cancelButtonText: '取消', type: 'warning' }
+      t('modules.nft.burn.confirm', { token_id: tokenId, amount: formatTokenAmount(refund) }),
+      t('modules.nft.burn.confirm_title'),
+      { confirmButtonText: t('modules.nft.burn.confirm_button'), cancelButtonText: t('common.button.cancel'), type: 'warning' }
     )
   } catch { return }
-  await doWrite(() => nftContractWrite.value.burnNFTForRefund(tokenId), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], `销毁勋章 TOKEN_ID ${tokenId}`)
+  await doWrite(() => nftContractWrite.value.burnNFTForRefund(tokenId), ['ctkBalance', 'nftCount', 'nftBoost', 'myNFTs'], t('modules.nft.message.burn_label', { token_id: tokenId }), null, { key: 'modules.tx_history.label.burn', params: { token_id: tokenId } })
   refreshPools()
 }
 
 async function testCTKTransfer(to, amount) {
-  if (!to.value || !amount.value) { notifyTxError('请填写地址和金额'); return }
+  if (!to.value || !amount.value) { notifyTxError(t('modules.reward.message.fill_address_amount')); return }
   try {
-    await ElMessageBox.confirm(`确认向 ${shortenAddress(to.value)} 转账 ${amount.value} CTK？`, '确认转账', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.reward.message.confirm_transfer', { address: shortenAddress(to.value), amount: amount.value }), t('modules.reward.message.confirm_transfer_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
   const amt = ethers.parseUnits(amount.value, DECIMALS)
-  await doWrite(() => tokenContractWrite.value.transfer(to.value, amt), ['ctkBalance'], 'CTK转账')
+  await doWrite(() => tokenContractWrite.value.transfer(to.value, amt), ['ctkBalance'], t('modules.reward.message.ctk_transfer_label'), null, { key: 'modules.tx_history.label.ctk_transfer' })
 }
 
 async function testNFTTransfer(to, tokenId) {
-  if (!to.value) { notifyTxError('请填写接收地址'); return }
+  if (!to.value) { notifyTxError(t('modules.nft.message.receiver_required')); return }
   try {
-    await ElMessageBox.confirm(`确认将 NFT TOKEN_ID ${tokenId.value} 转移至 ${shortenAddress(to.value)}？`, '确认转移', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.nft.transfer.confirm', { token_id: tokenId.value, address: shortenAddress(to.value) }), t('modules.nft.transfer.confirm_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.transferFrom(account.value, to.value, tokenId.value), ['nftCount', 'nftBoost', 'myNFTs'], `转移勋章 TOKEN_ID ${tokenId.value}`)
+  await doWrite(() => nftContractWrite.value.transferFrom(account.value, to.value, tokenId.value), ['nftCount', 'nftBoost', 'myNFTs'], t('modules.nft.message.transfer_label', { token_id: tokenId.value }), null, { key: 'modules.tx_history.label.transfer_medal', params: { token_id: tokenId.value } })
   refreshPools()
 }
 
 async function testWithdrawPostRewards() {
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).post) === 0) { notifyTxError('无待提现帖子奖励'); return }
-  await doWrite(() => tokenContractWrite.value.withdrawPostRewards(), ['ctkBalance', 'pendingPostReward', 'pendingTotalReward'], '提现帖奖')
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).post) === 0) { notifyTxError(t('modules.reward.message.no_post_reward')); return }
+  await doWrite(() => tokenContractWrite.value.withdrawPostRewards(), ['ctkBalance', 'pendingPostReward', 'pendingTotalReward'], t('modules.reward.message.withdraw_post_label'), null, { key: 'modules.tx_history.label.withdraw_post' })
 }
 
 async function testWithdrawCommentRewards() {
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).comment) === 0) { notifyTxError('无待提现评论奖励'); return }
-  await doWrite(() => tokenContractWrite.value.withdrawCommentRewards(), ['ctkBalance', 'pendingCommentReward', 'pendingTotalReward'], '提现评奖')
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).comment) === 0) { notifyTxError(t('modules.reward.message.no_comment_reward')); return }
+  await doWrite(() => tokenContractWrite.value.withdrawCommentRewards(), ['ctkBalance', 'pendingCommentReward', 'pendingTotalReward'], t('modules.reward.message.withdraw_comment_label'), null, { key: 'modules.tx_history.label.withdraw_comment' })
 }
 
 async function testWithdrawInitialReward() {
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).initial) === 0) { notifyTxError('无待提现初始奖励'); return }
-  await doWrite(() => tokenContractWrite.value.withdrawInitialReward(), ['ctkBalance', 'pendingInitialReward', 'pendingTotalReward'], '提现初始奖')
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).initial) === 0) { notifyTxError(t('modules.reward.message.no_initial_reward')); return }
+  await doWrite(() => tokenContractWrite.value.withdrawInitialReward(), ['ctkBalance', 'pendingInitialReward', 'pendingTotalReward'], t('modules.reward.message.withdraw_initial_label'), null, { key: 'modules.tx_history.label.withdraw_initial' })
 }
 
 async function testWithdrawAllRewards() {
-  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).total) === 0) { notifyTxError('无待提现奖励'); return }
-  await doWrite(() => tokenContractWrite.value.withdrawAllRewards(), ['ctkBalance', 'pendingPostReward', 'pendingCommentReward', 'pendingInitialReward', 'pendingTotalReward'], '全部提现')
+  if (Number((await tokenContractRead.value.getPendingRewards(account.value)).total) === 0) { notifyTxError(t('modules.reward.message.no_reward')); return }
+  await doWrite(() => tokenContractWrite.value.withdrawAllRewards(), ['ctkBalance', 'pendingPostReward', 'pendingCommentReward', 'pendingInitialReward', 'pendingTotalReward'], t('modules.reward.message.withdraw_all_label'), null, { key: 'modules.tx_history.label.withdraw_all' })
 }
 
 async function testSendCreatorReward(to, amount) {
-  if (!to.value || !amount.value) { notifyTxError('请填写地址和金额'); return }
+  if (!to.value || !amount.value) { notifyTxError(t('modules.admin.message.fill_address_amount')); return }
   try {
-    await ElMessageBox.confirm(`确认向 ${shortenAddress(to.value)} 发放 ${amount.value} CTK（创作者池）？`, '确认发放', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_send_creator', { address: shortenAddress(to.value), amount: amount.value }), t('modules.admin.message.confirm_send_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => tokenContractWrite.value.sendCreatorReward(to.value, ethers.parseUnits(amount.value, DECIMALS)), null, '创作者池发放')
+  await doWrite(() => tokenContractWrite.value.sendCreatorReward(to.value, ethers.parseUnits(amount.value, DECIMALS)), null, t('modules.admin.message.creator_reward_label'), null, { key: 'modules.tx_history.label.creator_reward' })
   refreshPools()
 }
 
 async function testSendInteractReward(to, amount) {
-  if (!to.value || !amount.value) { notifyTxError('请填写地址和金额'); return }
+  if (!to.value || !amount.value) { notifyTxError(t('modules.admin.message.fill_address_amount')); return }
   try {
-    await ElMessageBox.confirm(`确认向 ${shortenAddress(to.value)} 发放 ${amount.value} CTK（互动池）？`, '确认发放', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_send_interact', { address: shortenAddress(to.value), amount: amount.value }), t('modules.admin.message.confirm_send_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => tokenContractWrite.value.sendInteractReward(to.value, ethers.parseUnits(amount.value, DECIMALS)), null, '互动池发放')
+  await doWrite(() => tokenContractWrite.value.sendInteractReward(to.value, ethers.parseUnits(amount.value, DECIMALS)), null, t('modules.admin.message.interact_reward_label'), null, { key: 'modules.tx_history.label.interact_reward' })
   refreshPools()
 }
 
 async function testResetNFTPrice() {
   try {
-    await ElMessageBox.confirm('确认重置所有勋章价格为初始值？', '确认重置', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_reset_price'), t('modules.admin.message.confirm_reset_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.resetNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], '重置勋章价格')
+  await doWrite(() => nftContractWrite.value.resetNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], t('modules.admin.message.reset_price_label'), null, { key: 'modules.tx_history.label.reset_price' })
   refreshPools()
 }
 
 async function testRandomAdjustPrice() {
   try {
-    await ElMessageBox.confirm('确认随机调整勋章价格（±10%）？', '确认调价', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_adjust_price'), t('modules.admin.message.confirm_adjust_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.randomlyAdjustNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], '随机调价')
+  await doWrite(() => nftContractWrite.value.randomlyAdjustNFTPrice(), ['bronzePrice', 'silverPrice', 'goldPrice'], t('modules.admin.message.adjust_price_label'), null, { key: 'modules.tx_history.label.adjust_price' })
   refreshPools()
 }
 
 async function testNFTWithdrawCTK(amount) {
-  if (!amount || amount <= 0) { notifyTxError('请输入有效的提取金额'); return }
+  if (!amount || amount <= 0) { notifyTxError(t('modules.admin.message.invalid_withdraw_amount')); return }
   try {
-    await ElMessageBox.confirm(`确认从NFT合约提取 ${amount} CTK？\n提取的代币将按7:3分配给创作者池和互动池`, '确认提取', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_withdraw', { amount }), t('modules.admin.message.confirm_withdraw_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.withdrawCTK(ethers.parseUnits(String(amount), DECIMALS)), null, `提取 ${amount} CTK`)
+  await doWrite(() => nftContractWrite.value.withdrawCTK(ethers.parseUnits(String(amount), DECIMALS)), null, t('modules.admin.message.withdraw_label', { amount }), null, { key: 'modules.tx_history.label.withdraw', params: { amount } })
   refreshPools()
 }
 
 async function testNFTWithdrawAllCTK() {
   try {
-    await ElMessageBox.confirm('确认提取全部可提取额度？\n提取的代币将按7:3分配给创作者池和互动池', '确认提取', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_withdraw_all'), t('modules.admin.message.confirm_withdraw_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.withdrawAllCTK(), null, '提取全部可提取CTK')
+  await doWrite(() => nftContractWrite.value.withdrawAllCTK(), null, t('modules.admin.message.withdraw_all_label'), null, { key: 'modules.tx_history.label.withdraw_all_ctk' })
   refreshPools()
 }
 
 async function testNFTWithdrawOverflow() {
   try {
-    await ElMessageBox.confirm('确认提取溢出代币？\n提取的代币将按7:3分配给创作者池和互动池', '确认提取', {
-      confirmButtonText: '确认',
-      cancelButtonText: '取消',
+    await ElMessageBox.confirm(t('modules.admin.message.confirm_withdraw_overflow'), t('modules.admin.message.confirm_withdraw_title'), {
+      confirmButtonText: t('common.button.confirm'),
+      cancelButtonText: t('common.button.cancel'),
       type: 'warning'
     })
   } catch { return }
-  await doWrite(() => nftContractWrite.value.withdrawOverflow(), null, '提取溢出CTK')
+  await doWrite(() => nftContractWrite.value.withdrawOverflow(), null, t('modules.admin.message.withdraw_overflow_label'), null, { key: 'modules.tx_history.label.withdraw_overflow' })
   refreshPools()
 }
 
@@ -814,19 +858,19 @@ async function testNFTWithdrawOverflow() {
 // 页面加载：优先读缓存，无缓存则全量刷新
 watch(canInteract, async (val) => {
   if (val) {
-    dataLoadingProgress.value = '加载存储数据...'
+    dataLoadingProgress.value = t('modules.chain_data.progress.loading_store')
     initStore()
     initTransferToggle()
     loadTxHistory()
 
-    dataLoadingProgress.value = '加载帖子列表...'
+    dataLoadingProgress.value = t('modules.chain_data.progress.loading_posts')
     // 帖子列表：先读缓存秒显示，再刷新
     const postCache = loadPosts()
     if (postCache?.data?.length) {
       posts.value = JSON.parse(JSON.stringify(postCache.data))
     }
 
-    dataLoadingProgress.value = '加载用户数据...'
+    dataLoadingProgress.value = t('modules.chain_data.progress.loading_user')
     // 用户数据：先读缓存
     const userCache = loadUserData(account.value)
     if (userCache?.data) {
@@ -839,7 +883,7 @@ watch(canInteract, async (val) => {
     // 帖子列表独立加载，不阻塞主流程
     fetchPosts()
 
-    dataLoadingProgress.value = '加载池子数据...'
+    dataLoadingProgress.value = t('modules.chain_data.progress.loading_pools')
     // 池子数据：先读缓存
     const poolCache = loadPools()
     if (poolCache?.data) {
@@ -871,6 +915,10 @@ watch(account, (newAddr, oldAddr) => {
       poolData.value = JSON.parse(JSON.stringify(poolCache.data))
     }
   }
+})
+
+watch(locale, () => {
+  relocalizeCooldownLabels()
 })
 
 onMounted(async () => {
@@ -946,7 +994,9 @@ provide('emit', (event, ...args) => {
 </script>
 
 <template>
-  <router-view />
+  <el-config-provider :locale="elementPlusLocale">
+    <router-view />
+  </el-config-provider>
 </template>
 
 <style>

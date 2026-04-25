@@ -12,6 +12,40 @@ export default defineConfig({
   server: {
     historyApiFallback: true
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          const normalizedId = id.replaceAll('\\', '/')
+          if (
+            normalizedId.includes('/node_modules/vue/') ||
+            normalizedId.includes('/node_modules/vue-router/') ||
+            normalizedId.includes('/node_modules/vue-i18n/') ||
+            normalizedId.includes('/node_modules/@vue/')
+          ) {
+            return 'vue-vendor'
+          }
+          if (
+            normalizedId.includes('/node_modules/element-plus/') ||
+            normalizedId.includes('/node_modules/@element-plus/')
+          ) {
+            return 'element-plus'
+          }
+          if (
+            normalizedId.includes('/node_modules/ethers/') ||
+            normalizedId.includes('/node_modules/@ethersproject/')
+          ) {
+            return 'ethers'
+          }
+          if (normalizedId.includes('/node_modules/markdown-it/')) {
+            return 'markdown'
+          }
+          return 'vendor'
+        }
+      }
+    }
+  },
   plugins: [
     vue(),
     AutoImport({

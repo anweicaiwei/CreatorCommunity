@@ -1,0 +1,31 @@
+{
+  "title": "Transaction History",
+  "empty": "No transaction records",
+  "error": {
+    "rejected": "You canceled the transaction",
+    "insufficient_funds": "Insufficient ETH balance to pay the gas fee"
+  },
+  "label": {
+    "mint_bronze": "Mint Bronze Medal",
+    "mint_silver": "Mint Silver Medal",
+    "mint_gold": "Mint Gold Medal",
+    "burn": "Burn Medal",
+    "transfer_medal": "Transfer Medal",
+    "withdraw": "Withdraw",
+    "post": "Post",
+    "comment": "Comment on Post",
+    "claim_initial": "Claim Initial Reward",
+    "creator_reward": "Creator Pool Distribution",
+    "interact_reward": "Interaction Pool Distribution",
+    "ctk_transfer": "CTK Transfer",
+    "reset_price": "Reset Medal Prices",
+    "adjust_price": "Random Price Adjustment",
+    "withdraw_post": "Withdraw Post Reward",
+    "withdraw_comment": "Withdraw Comment Reward",
+    "withdraw_initial": "Withdraw Initial Reward",
+    "withdraw_all": "Withdraw All",
+    "withdraw_all_ctk": "Withdraw All Available CTK",
+    "withdraw_overflow": "Withdraw Overflow CTK",
+    "default": "Transaction"
+  }
+}

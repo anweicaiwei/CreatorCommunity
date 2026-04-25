@@ -1,12 +1,20 @@
 <script setup>
 import { ref, onMounted, nextTick, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import MarkdownIt from 'markdown-it'
 import { ArrowLeft, Sunny, Moon } from '@element-plus/icons-vue'
+import { setLocale } from '@/locales'
 
 const htmlContent = ref('')
 const loading = ref(true)
 const error = ref(null)
-const currentLang = ref('zh')
+const manualCache = new Map()
+const pendingFetches = new Map()
+const route = useRoute()
+const router = useRouter()
+const { t, locale } = useI18n()
+const currentLang = ref(locale.value)
 
 const STORAGE_KEY = 'creatorcommunity-dark-mode'
 const isDark = ref(localStorage.getItem(STORAGE_KEY) === 'true')
@@ -63,28 +71,64 @@ md.renderer.rules.heading_open = function(tokens, idx, options, env, self) {
   return defaultRender(tokens, idx, options, env, self)
 }
 
+async function scrollToHash() {
+  await nextTick()
+
+  const hash = window.location.hash
+  if (hash) {
+    const id = decodeURIComponent(hash.slice(1))
+    const el = document.getElementById(id)
+    if (el) el.scrollIntoView({ behavior: 'smooth' })
+  }
+}
+
+async function fetchManualHtml(lang) {
+  if (manualCache.has(lang)) return manualCache.get(lang)
+  if (pendingFetches.has(lang)) return pendingFetches.get(lang)
+
+  const fileName = lang === 'zh' ? 'user-manual.zh.md' : 'user-manual.en.md'
+  const request = fetch(`/CreatorCommunity/${fileName}`)
+    .then(async (res) => {
+      if (!res.ok) throw new Error(`加载失败 (${res.status})`)
+      const markdownText = await res.text()
+      const renderedHtml = md.render(markdownText)
+      manualCache.set(lang, renderedHtml)
+      return renderedHtml
+    })
+    .finally(() => {
+      pendingFetches.delete(lang)
+    })
+
+  pendingFetches.set(lang, request)
+  return request
+}
+
+async function prefetchManual(lang) {
+  try {
+    await fetchManualHtml(lang)
+  } catch {
+    // Background prefetch failures should not disturb the current view.
+  }
+}
+
 // 加载对应语言的手册
 async function loadManual(lang) {
-  loading.value = true
   error.value = null
-  
-  try {
-    const fileName = lang === 'zh' ? 'user-manual.zh.md' : 'user-manual.en.md'
-    const res = await fetch(`/CreatorCommunity/${fileName}`)
-    if (!res.ok) throw new Error(`加载失败 (${res.status})`)
-    const markdownText = await res.text()
 
-    htmlContent.value = md.render(markdownText)
+  if (manualCache.has(lang)) {
+    htmlContent.value = manualCache.get(lang)
     loading.value = false
+    await scrollToHash()
+    return
+  }
 
-    await nextTick()
-    
-    const hash = window.location.hash
-    if (hash) {
-      const id = decodeURIComponent(hash.slice(1))
-      const el = document.getElementById(id)
-      if (el) el.scrollIntoView({ behavior: 'smooth' })
-    }
+  loading.value = true
+
+  try {
+    htmlContent.value = await fetchManualHtml(lang)
+    loading.value = false
+    await scrollToHash()
+    prefetchManual(lang === 'zh' ? 'en' : 'zh')
   } catch (e) {
     error.value = e.message
     loading.value = false
@@ -100,20 +144,35 @@ function handleContentClick(e) {
   if (href === './user-manual.zh.md' || href === './user-manual.en.md') {
     e.preventDefault()
     const targetLang = href.includes('zh') ? 'zh' : 'en'
-    currentLang.value = targetLang
+    setLocale(targetLang)
+    router.push(`/CreatorCommunity/manual-${targetLang}`)
   }
 }
 
+function switchLocale(value) {
+  setLocale(value)
+  router.push(`/CreatorCommunity/manual-${value}`)
+}
+
 // 监听语言变化
-watch(currentLang, (newLang) => {
+watch(locale, (newLang) => {
+  currentLang.value = newLang
   loadManual(newLang)
+})
+
+watch(() => route.path, (path) => {
+  const routeLang = path.endsWith('manual-en') ? 'en' : path.endsWith('manual-zh') ? 'zh' : locale.value
+  if (routeLang !== locale.value) setLocale(routeLang)
 })
 
 onMounted(() => {
   if (isDark.value) {
     document.documentElement.classList.add('dark')
   }
-  loadManual('zh')
+  const routeLang = route.path.endsWith('manual-en') ? 'en' : route.path.endsWith('manual-zh') ? 'zh' : locale.value
+  setLocale(routeLang)
+  loadManual(routeLang)
+  prefetchManual(routeLang === 'zh' ? 'en' : 'zh')
 })
 </script>
 
@@ -122,10 +181,19 @@ onMounted(() => {
     <div class="manual-header">
       <router-link class="manual-link" to="/CreatorCommunity">
         <el-icon><ArrowLeft /></el-icon>
-        <span>返回首页</span>
+        <span>{{ t('modules.manual.back_home') }}</span>
       </router-link>
-      <h1 class="manual-title">{{ currentLang === 'zh' ? '用户手册' : 'User Manual' }}</h1>
-      <button class="theme-toggle" @click="toggleDark" :title="isDark ? '切换亮色模式' : '切换暗色模式'">
+      <h1 class="manual-title">{{ t('modules.manual.title') }}</h1>
+      <el-segmented
+        class="language-switch"
+        :model-value="locale"
+        :options="[
+          { label: t('common.language.zh'), value: 'zh' },
+          { label: t('common.language.en'), value: 'en' }
+        ]"
+        @update:model-value="switchLocale"
+      />
+      <button class="theme-toggle" @click="toggleDark" :title="isDark ? t('common.button.switch_light') : t('common.button.switch_dark')">
         <el-icon size="18"><Sunny v-if="isDark" /><Moon v-else /></el-icon>
       </button>
     </div>
@@ -133,11 +201,11 @@ onMounted(() => {
     <el-card class="manual-card">
       <div v-if="loading" class="manual-loading">
         <el-icon class="loading-icon" :size="32"><el-icon-loading /></el-icon>
-        <span>{{ currentLang === 'zh' ? '加载手册中...' : 'Loading manual...' }}</span>
+        <span>{{ t('modules.manual.loading') }}</span>
       </div>
 
       <el-alert v-else-if="error" type="error" :title="error" :closable="false" show-icon>
-        <p>请确保用户手册文件存在于 <code>public/user-manual.{{ currentLang }}.md</code></p>
+        <p>{{ t('modules.manual.missing') }} <code>public/user-manual.{{ currentLang }}.md</code></p>
       </el-alert>
 
       <!-- eslint-disable-next-line vue/no-v-html -->
@@ -191,6 +259,12 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.language-switch {
+  --el-segmented-item-selected-bg-color: var(--color-primary);
+  --el-segmented-item-selected-color: var(--color-text-inverse);
   flex-shrink: 0;
 }
 

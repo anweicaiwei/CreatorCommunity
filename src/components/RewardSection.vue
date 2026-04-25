@@ -1,7 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Wallet, Promotion, Coin } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   canInteract: Boolean,
@@ -23,15 +26,15 @@ const transferTo = ref('')
 const transferAmount = ref('')
 
 const rewardRows = computed(() => [
-  { name: '帖子奖励', amount: `${props.readData.pendingPostReward || '0'} CTK`, event: 'withdraw-post' },
-  { name: '评论奖励', amount: `${props.readData.pendingCommentReward || '0'} CTK`, event: 'withdraw-comment' },
-  { name: '初始奖励', amount: `${props.readData.pendingInitialReward || '0'} CTK`, event: 'withdraw-initial' },
-  { name: '合计', amount: `${props.readData.pendingTotalReward || '0'} CTK`, event: 'withdraw-all' }
+  { name: t('modules.reward.pending.post'), amount: `${props.readData.pendingPostReward || '0'} CTK`, event: 'withdraw-post' },
+  { name: t('modules.reward.pending.comment'), amount: `${props.readData.pendingCommentReward || '0'} CTK`, event: 'withdraw-comment' },
+  { name: t('modules.reward.pending.initial'), amount: `${props.readData.pendingInitialReward || '0'} CTK`, event: 'withdraw-initial' },
+  { name: t('modules.reward.pending.total'), amount: `${props.readData.pendingTotalReward || '0'} CTK`, event: 'withdraw-all' }
 ])
 </script>
 
 <template>
-  <Card title="奖励管理" icon="Coin">
+  <Card :title="t('modules.reward.title')" icon="Coin">
     <!-- 初始奖励领取 -->
     <div class="reward-card">
       <div class="reward-card-header">
@@ -39,8 +42,8 @@ const rewardRows = computed(() => [
           <el-icon><Coin /></el-icon>
         </div>
         <div class="reward-card-info">
-          <span class="reward-card-title">初始奖励</span>
-          <span class="reward-card-desc">新用户可领取 1 CTK</span>
+          <span class="reward-card-title">{{ t('modules.reward.initial.title') }}</span>
+          <span class="reward-card-desc">{{ t('modules.reward.initial.desc') }}</span>
         </div>
       </div>
       <el-button
@@ -49,7 +52,7 @@ const rewardRows = computed(() => [
         @click="emit('claim-initial')"
         class="reward-claim-btn"
       >
-        领取 1 CTK
+        {{ t('modules.reward.initial.button') }}
       </el-button>
     </div>
 
@@ -60,22 +63,22 @@ const rewardRows = computed(() => [
           <el-icon><Coin /></el-icon>
         </div>
         <div class="reward-card-info">
-          <span class="reward-card-title">待提现奖励</span>
-          <span class="reward-card-desc">社区互动产生的奖励</span>
+          <span class="reward-card-title">{{ t('modules.reward.pending.title') }}</span>
+          <span class="reward-card-desc">{{ t('modules.reward.pending.desc') }}</span>
         </div>
       </div>
       <template v-if="readData.pendingTotalReward">
         <div class="reward-stats">
           <div class="reward-stat">
-            <span class="reward-stat-label">帖子</span>
+            <span class="reward-stat-label">{{ t('modules.reward.pending.post') }}</span>
             <span class="reward-stat-value">{{ readData.pendingPostReward || '0' }}</span>
           </div>
           <div class="reward-stat">
-            <span class="reward-stat-label">评论</span>
+            <span class="reward-stat-label">{{ t('modules.reward.pending.comment') }}</span>
             <span class="reward-stat-value">{{ readData.pendingCommentReward || '0' }}</span>
           </div>
           <div class="reward-stat reward-stat--highlight">
-            <span class="reward-stat-label">合计</span>
+            <span class="reward-stat-label">{{ t('modules.reward.pending.total') }}</span>
             <span class="reward-stat-value">{{ readData.pendingTotalReward || '0' }}</span>
           </div>
         </div>
@@ -86,7 +89,7 @@ const rewardRows = computed(() => [
             :disabled="!canInteract || writeLoading"
             class="reward-action-btn"
           >
-            提取帖子奖励
+            {{ t('modules.reward.button.withdraw_post') }}
           </el-button>
           <el-button 
             size="small" 
@@ -94,7 +97,7 @@ const rewardRows = computed(() => [
             :disabled="!canInteract || writeLoading"
             class="reward-action-btn"
           >
-            提取评论奖励
+            {{ t('modules.reward.button.withdraw_comment') }}
           </el-button>
           <el-button 
             size="small" 
@@ -102,7 +105,7 @@ const rewardRows = computed(() => [
             :disabled="!canInteract || writeLoading"
             class="reward-action-btn"
           >
-            提取初始奖励
+            {{ t('modules.reward.button.withdraw_initial') }}
           </el-button>
           <el-button 
             size="small" 
@@ -110,11 +113,11 @@ const rewardRows = computed(() => [
             :disabled="!canInteract || writeLoading"
             class="reward-action-btn reward-action-btn--primary"
           >
-            一键提取全部
+            {{ t('modules.reward.button.withdraw_all') }}
           </el-button>
         </div>
       </template>
-      <el-empty v-else description="刷新数据后查看待提现奖励" :image-size="40" />
+      <el-empty v-else :description="t('modules.reward.pending.empty')" :image-size="40" />
     </div>
 
     <!-- CTK 转账 -->
@@ -124,15 +127,15 @@ const rewardRows = computed(() => [
           <el-icon><Promotion /></el-icon>
         </div>
         <div class="reward-card-info">
-          <span class="reward-card-title">CTK 转账</span>
-          <span class="reward-card-desc">将 CTK 转账给其他用户</span>
+          <span class="reward-card-title">{{ t('modules.reward.transfer.title') }}</span>
+          <span class="reward-card-desc">{{ t('modules.reward.transfer.desc') }}</span>
         </div>
       </div>
       <div class="reward-transfer-form">
-        <el-input v-model="transferTo" placeholder="接收地址" size="small" />
-        <el-input v-model="transferAmount" placeholder="金额 (CTK)" size="small" />
+        <el-input v-model="transferTo" :placeholder="t('common.label.receiver_address')" size="small" />
+        <el-input v-model="transferAmount" :placeholder="t('common.label.amount_ctk')" size="small" />
         <el-button type="primary" size="small" :disabled="!canInteract || writeLoading" @click="emit('ctk-transfer', transferTo, transferAmount)">
-          转账
+          {{ t('common.button.transfer') }}
         </el-button>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { ethers } from 'ethers'
 import { DECIMALS } from './constants'
+import { t } from '@/locales'
 
 /**
  * @param {bigint|string|number} amount - 链上原始值 (wei)
@@ -75,6 +76,10 @@ export function formatCooldown(ms) {
  * @returns {string}
  */
 export function formatNFTRank(rank) {
-  const labels = { 0: '青铜', 1: '白银', 2: '黄金' }
-  return labels[Number(rank)] || '未知'
+  const labels = {
+    0: t('modules.nft.tier.bronze'),
+    1: t('modules.nft.tier.silver'),
+    2: t('modules.nft.tier.gold')
+  }
+  return labels[Number(rank)] || t('modules.nft.tier.unknown')
 }

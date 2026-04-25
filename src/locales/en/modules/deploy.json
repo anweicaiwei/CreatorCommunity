@@ -1,0 +1,38 @@
+{
+  "title": "Contract Deployment",
+  "status": {
+    "not_found": "No deployed contract detected",
+    "active": "Contract Deployed",
+    "deploying": "Deploying...",
+    "confirming": "Waiting for confirmation...",
+    "fetching_nft": "Fetching NFT address...",
+    "success": "Deployment succeeded!",
+    "failed": "Deployment failed"
+  },
+  "desc": {
+    "deploy_pair": "Deploying the CreatorToken contract will automatically create the paired CreatorNFT contract",
+    "erc20": "ERC20 token",
+    "erc721": "ERC721 medal",
+    "transfer_hint": "When enabled, token transfer and medal transfer features will be shown"
+  },
+  "button": {
+    "deploy": "Deploy Contract",
+    "disable": "Disable Contract",
+    "view_explorer": "View in Block Explorer",
+    "transfer_feature": "Transfer Feature"
+  },
+  "message": {
+    "connect_wallet_first": "Please connect your wallet first",
+    "switch_correct_network": "Please switch to the correct network",
+    "deploying": "Deploying CreatorToken + CreatorNFT contracts...",
+    "success_token": "Deployment succeeded! Token: ",
+    "clear_confirm": "Confirm disabling the contract? This will clear all deployed contract addresses and related data.",
+    "clear_title": "Confirm Disable",
+    "clear_confirm_button": "Confirm Disable"
+  },
+  "error": {
+    "wallet_not_connected": "Wallet is not connected, cannot deploy",
+    "rejected": "You canceled the deployment transaction",
+    "insufficient_funds": "Insufficient ETH balance to pay the deployment gas fee"
+  }
+}

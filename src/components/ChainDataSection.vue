@@ -1,7 +1,10 @@
 <script setup>
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Refresh, Wallet, ChatLineSquare, Medal, Coin, Loading } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   readData: Object,
@@ -20,25 +23,25 @@ const excluding = ['myNFTs','myBronzeBoost', 'mySilverBoost', 'myGoldBoost', 'th
 const categories = [
   {
     key: 'account',
-    title: '账户信息',
+    titleKey: 'modules.chain_data.category.account',
     icon: Wallet,
     fields: ['ctkBalance', 'hasClaimedInitial']
   },
   {
     key: 'interaction',
-    title: '互动状态',
+    titleKey: 'modules.chain_data.category.interaction',
     icon: ChatLineSquare,
     fields: ['postCooldown', 'commentCooldown']
   },
   {
     key: 'nft',
-    title: '勋章信息',
+    titleKey: 'modules.chain_data.category.nft',
     icon: Medal,
     fields: ['nftBoost', 'bronzePrice', 'silverPrice', 'goldPrice', 'nftCount', 'myBronze', 'mySilver', 'myGold']
   },
   {
     key: 'rewards',
-    title: '待提现奖励',
+    titleKey: 'modules.chain_data.category.rewards',
     icon: Coin,
     fields: ['pendingPostReward', 'pendingCommentReward', 'pendingInitialReward', 'pendingTotalReward']
   }
@@ -47,7 +50,21 @@ const categories = [
 // 格式化布尔值
 function formatValue(key, val) {
   if (typeof val === 'boolean') {
-    return val ? '是' : '否'
+    return val ? t('common.status.yes') : t('common.status.no')
+  }
+  if (key === 'postCooldown' || key === 'commentCooldown') {
+    const readyKey = key === 'postCooldown'
+      ? 'modules.chain_data.cooldown.ready_post'
+      : 'modules.chain_data.cooldown.ready_comment'
+    if (val === '可发帖' || val === 'Can post' || val === '可评论' || val === 'Can comment') {
+      return t(readyKey)
+    }
+    if (typeof val === 'string' && val.startsWith('等待 ')) {
+      return t('modules.chain_data.cooldown.waiting', { time: val.replace('等待 ', '') })
+    }
+    if (typeof val === 'string' && val.startsWith('Wait ')) {
+      return t('modules.chain_data.cooldown.waiting', { time: val.replace('Wait ', '') })
+    }
   }
   return val
 }
@@ -56,6 +73,7 @@ function formatValue(key, val) {
 const categorizedData = computed(() => {
   return categories.map(cat => ({
     ...cat,
+    title: t(cat.titleKey),
     items: cat.fields
       .filter(field => !excluding.includes(field) && props.readData[field] !== undefined)
       .map(field => ({
@@ -67,11 +85,11 @@ const categorizedData = computed(() => {
 </script>
 
 <template>
-  <Card title="当前账户相关信息" icon="DataAnalysis" :refresh-btn="true" :refresh-loading="readLoading" @refresh="emit('refresh')">
+  <Card :title="t('modules.chain_data.title')" icon="DataAnalysis" :refresh-btn="true" :refresh-loading="readLoading" @refresh="emit('refresh')">
     <!-- 重新连接时的加载动画 -->
     <div v-if="props.isWalletConnected && readLoading" class="reconnecting-overlay">
       <el-icon class="reconnect-spinner" :size="28"><Loading /></el-icon>
-      <span class="reconnect-text">正在重新加载账户数据...</span>
+      <span class="reconnect-text">{{ t('modules.chain_data.loading') }}</span>
     </div>
 
     <!-- 错误提示 -->
@@ -98,7 +116,7 @@ const categorizedData = computed(() => {
     </el-scrollbar>
 
     <!-- 无数据提示 -->
-    <el-empty v-else description="暂无账户数据，请先连接钱包并刷新" :image-size="60" />
+    <el-empty v-else :description="t('modules.chain_data.empty')" :image-size="60" />
   </Card>
 </template>
 

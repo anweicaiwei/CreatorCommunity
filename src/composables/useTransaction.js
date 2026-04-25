@@ -1,5 +1,6 @@
 import { ref, shallowRef, computed } from 'vue'
 import { NETWORK_CONFIG } from '@/contracts'
+import { t } from '@/locales'
 
 const status = ref('idle') // idle | pending | success | error
 const txHash = ref(null)
@@ -34,15 +35,15 @@ async function execute(fn) {
   } catch (e) {
     status.value = 'error'
     if (e.code === 4001 || e.code === 'ACTION_REJECTED') {
-      errorMessage.value = '您取消了交易'
+      errorMessage.value = t('modules.tx_history.error.rejected')
     } else if (e.code === 'INSUFFICIENT_FUNDS') {
-      errorMessage.value = 'ETH 余额不足以支付燃气费'
+      errorMessage.value = t('modules.tx_history.error.insufficient_funds')
     } else if (e.reason) {
       errorMessage.value = e.reason
     } else if (e.info?.error?.message) {
       errorMessage.value = e.info.error.message
     } else {
-      errorMessage.value = e.shortMessage || e.message || '交易失败'
+      errorMessage.value = e.shortMessage || e.message || t('common.message.transaction_failed')
     }
     throw e
   }

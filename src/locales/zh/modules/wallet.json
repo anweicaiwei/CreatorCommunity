@@ -1,0 +1,76 @@
+{
+  "title": "钱包",
+  "connect": {
+    "title": "连接钱包",
+    "desc": "连接 MetaMask 钱包以参与社区互动",
+    "button": "连接 MetaMask",
+    "connecting": "连接中..."
+  },
+  "status": {
+    "connected": "已连接",
+    "network_error": "网络错误",
+    "deployed": "已部署",
+    "not_deployed": "未部署",
+    "current_network": "当前网络",
+    "unknown_network": "未知网络",
+    "admin_permission": "管理员权限",
+    "connect_time": "连接时间",
+    "calculating": "计算中...",
+    "block_explorer": "区块浏览器",
+    "view_address": "查看地址 →"
+  },
+  "contract": {
+    "status": "合约状态",
+    "deploy_desc": "部署 CreatorToken 合约将自动创建配套的 CreatorNFT 合约",
+    "creator_token": "CreatorToken ERC20 代币",
+    "creator_nft": "CreatorNFT ERC721 勋章",
+    "view": "查看"
+  },
+  "tip": {
+    "wrong_network": "当前网络不正确，请切换到 {network} 网络",
+    "owner": "您拥有合约管理员权限，可以进行配置管理操作",
+    "connected": "连接成功！您可以参与社区互动获取奖励"
+  },
+  "admin": {
+    "advanced": "高级管理",
+    "transfer_feature": "转移功能",
+    "on": "开",
+    "off": "关",
+    "transfer_hint": "开启后，会显示代币转账和勋章转移功能",
+    "disable_contract": "停用合约"
+  },
+  "button": {
+    "switch_network": "切换网络",
+    "disconnect": "断开连接"
+  },
+  "message": {
+    "disconnect_title": "断开钱包连接",
+    "disconnect_confirm": "确认断开钱包连接？",
+    "disconnect_clear": "以下缓存数据将被清除：",
+    "disconnect_keep": "以下缓存数据将保留：",
+    "disconnect_confirm_button": "确认断开",
+    "disconnected": "已断开钱包连接",
+    "cache_balance": "账户余额、持仓信息",
+    "cache_nft": "勋章持有数量和增益数据",
+    "cache_cooldown": "发帖/评论冷却状态",
+    "cache_rewards": "待提现奖励数据",
+    "cache_settings": "自定义设置（显示偏好等）",
+    "keep_tx": "交易历史记录",
+    "keep_posts": "已发布的帖子数据",
+    "keep_pools": "池子配置（管理员）"
+  },
+  "error": {
+    "install_metamask": "请安装 MetaMask 钱包扩展",
+    "rejected": "您拒绝了钱包连接请求",
+    "connect_failed": "连接失败: {message}",
+    "auto_connect_failed": "自动恢复连接失败: {message}",
+    "add_network_failed": "添加网络失败，请手动切换",
+    "switch_network_failed": "切换网络失败，请手动在 MetaMask 中切换"
+  },
+  "time": {
+    "second": "{count}秒",
+    "minute_second": "{minutes}分{seconds}秒",
+    "hour_minute": "{hours}小时{minutes}分",
+    "day_hour": "{days}天{hours}小时"
+  }
+}

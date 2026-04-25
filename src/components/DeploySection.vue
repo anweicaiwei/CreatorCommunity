@@ -1,6 +1,9 @@
 <script setup>
 import {FolderDelete, Warning, Check, CircleCheck, Document, Coin } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/card.vue'
+
+const { t } = useI18n()
 
 defineProps({
   isConnected: Boolean,
@@ -25,7 +28,7 @@ function shorten(addr) {
 </script>
 
 <template>
-  <Card title="合约部署" icon="Coin">
+  <Card :title="t('modules.deploy.title')" icon="Coin">
     <!-- 未部署：显示部署按钮 -->
     <div v-if="!hasAddresses" class="deploy-prompt">
       <div class="status-card">
@@ -33,8 +36,8 @@ function shorten(addr) {
           <el-icon :size="40"><Document /></el-icon>
         </div>
         <div class="status-info">
-          <h4>未检测到已部署的合约</h4>
-          <p>部署 CreatorToken 合约将自动创建配套的 CreatorNFT 合约</p>
+          <h4>{{ t('modules.deploy.status.not_found') }}</h4>
+          <p>{{ t('modules.deploy.desc.deploy_pair') }}</p>
         </div>
       </div>
 
@@ -42,12 +45,12 @@ function shorten(addr) {
         <div class="info-item">
           <el-icon><Coin /></el-icon>
           <span>CreatorToken (CTK)</span>
-          <el-tag size="small" type="info" effect="plain">ERC20 代币</el-tag>
+          <el-tag size="small" type="info" effect="plain">{{ t('modules.deploy.desc.erc20') }}</el-tag>
         </div>
         <div class="info-item">
           <el-icon><Coin /></el-icon>
           <span>CreatorNFT (CMN)</span>
-          <el-tag size="small" type="info" effect="plain">ERC721 勋章</el-tag>
+          <el-tag size="small" type="info" effect="plain">{{ t('modules.deploy.desc.erc721') }}</el-tag>
         </div>
       </div>
 
@@ -58,13 +61,13 @@ function shorten(addr) {
         @click="emit('deploy')"
         class="deploy-btn"
       >
-        <template v-if="deployStatus === 'deploying'">部署中...</template>
-        <template v-else-if="deployStatus === 'confirming'">等待确认...</template>
-        <template v-else-if="deployStatus === 'fetching-nft'">获取NFT地址...</template>
-        <template v-else>部署合约</template>
+        <template v-if="deployStatus === 'deploying'">{{ t('modules.deploy.status.deploying') }}</template>
+        <template v-else-if="deployStatus === 'confirming'">{{ t('modules.deploy.status.confirming') }}</template>
+        <template v-else-if="deployStatus === 'fetching-nft'">{{ t('modules.deploy.status.fetching_nft') }}</template>
+        <template v-else>{{ t('modules.deploy.button.deploy') }}</template>
       </el-button>
       <el-text v-if="deployStatus === 'success'" type="success" style="margin-top: 8px; display: block;">
-        部署成功!
+        {{ t('modules.deploy.status.success') }}
       </el-text>
       <el-text v-if="deployError" type="danger" style="margin-top: 8px; display: block;">{{ deployError }}</el-text>
     </div>
@@ -75,7 +78,7 @@ function shorten(addr) {
         <div>
           <div class="status-active">
             <el-icon :size="20"><CircleCheck /></el-icon>
-            <span>合约已部署</span>
+            <span>{{ t('modules.deploy.status.active') }}</span>
           </div>
 
           <div class="contract-list">
@@ -85,7 +88,7 @@ function shorten(addr) {
                 <span class="contract-name">CreatorToken</span>
               </div>
               <el-text class="mono" size="small">{{ tokenAddress }}</el-text>
-              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${tokenAddress}`" target="_blank" size="small">在区块浏览器查看</el-link>
+              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${tokenAddress}`" target="_blank" size="small">{{ t('modules.deploy.button.view_explorer') }}</el-link>
             </div>
 
             <div class="contract-item">
@@ -94,7 +97,7 @@ function shorten(addr) {
                 <span class="contract-name">CreatorNFT</span>
               </div>
               <el-text class="mono" size="small">{{ nftAddress }}</el-text>
-              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${nftAddress}`" target="_blank" size="small">在区块浏览器查看</el-link>
+              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${nftAddress}`" target="_blank" size="small">{{ t('modules.deploy.button.view_explorer') }}</el-link>
             </div>
           </div>
 
@@ -105,20 +108,20 @@ function shorten(addr) {
               :model-value="showTransfer"
               @update:model-value="emit('toggle-transfer')"
               inline-prompt
-              active-text="转移功能"
-              inactive-text="转移功能"
+              :active-text="t('modules.deploy.button.transfer_feature')"
+              :inactive-text="t('modules.deploy.button.transfer_feature')"
               size="small"
             />
             <div class="note">
               <el-icon><Warning /></el-icon>
-              <span>开启后，会显示代币转账和勋章转移功能</span>
+              <span>{{ t('modules.deploy.desc.transfer_hint') }}</span>
             </div>
           </div>
         </div>
 
         <el-button type="danger" size="default" @click="emit('clear-addresses')" class="danger-btn">
           <el-icon><FolderDelete /></el-icon>
-          停用合约
+          {{ t('modules.deploy.button.disable') }}
         </el-button>
       </div>
     </div>

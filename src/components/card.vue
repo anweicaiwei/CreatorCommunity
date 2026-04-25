@@ -10,6 +10,9 @@ import {
   Setting,
   Refresh
 } from '@element-plus/icons-vue';
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   title: { type: String, default: '' },
@@ -55,7 +58,7 @@ defineSlots();
             @click="emit('refresh')"
             class="card-refresh-btn"
           >
-            <span>刷新</span>
+            <span>{{ t('common.button.refresh') }}</span>
           </el-button>
         </div>
       </div>

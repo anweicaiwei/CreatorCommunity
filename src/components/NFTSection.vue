@@ -2,6 +2,9 @@
 import { CirclePlus, Delete, Trophy, Promotion, InfoFilled } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const props = defineProps({
   canInteract: Boolean,
@@ -28,7 +31,7 @@ const safeMyNFTs = computed(() => {
 </script>
 
 <template>
-  <Card title="勋章管理" icon="Medal">
+  <Card :title="t('modules.nft.title')" icon="Medal">
     <div class="nft-layout">
       <!-- 左侧：我的勋章 -->
       <div class="my-nfts">
@@ -37,13 +40,13 @@ const safeMyNFTs = computed(() => {
             <div class="nft-section-icon">
               <el-icon><Trophy /></el-icon>
             </div>
-            <span>我的勋章</span>
+            <span>{{ t('modules.nft.my.title') }}</span>
           </div>
           <div v-if="readData.theoreticalBoost" class="boost-summary">
-            <span class="boost-item">理论收益: {{ readData.theoreticalBoost }}%</span>
+            <span class="boost-item">{{ t('modules.nft.my.theoretical_boost', { value: readData.theoreticalBoost }) }}</span>
             <span class="boost-divider">|</span>
-            <el-tooltip content="实际奖励增益（上限为50%）" placement="top">
-              <span class="boost-item actual-boost">实际收益: {{ readData.nftBoost }}%</span>
+            <el-tooltip :content="t('modules.nft.my.actual_boost_tip')" placement="top">
+              <span class="boost-item actual-boost">{{ t('modules.nft.my.actual_boost', { value: readData.nftBoost }) }}</span>
             </el-tooltip>
           </div>
         </div>
@@ -52,7 +55,7 @@ const safeMyNFTs = computed(() => {
             <!-- 青铜 -->
             <div class="nft-column">
               <div class="column-header">
-                <el-tag type="info" size="small" effect="plain">青铜 x{{ readData.myBronze || 0 }}</el-tag>
+                <el-tag type="info" size="small" effect="plain">{{ t('modules.nft.tier.bronze') }} x{{ readData.myBronze || 0 }}</el-tag>
                 <span v-if="readData.myBronze > 0" class="boost-tag">+{{ readData.myBronzeBoost }}%</span>
               </div>
               <el-scrollbar class="column-body">
@@ -64,14 +67,14 @@ const safeMyNFTs = computed(() => {
                     </el-button>
                   </div>
                 </template>
-                <el-empty v-else description="暂无" :image-size="30" />
+                <el-empty v-else :description="t('common.status.empty')" :image-size="30" />
               </el-scrollbar>
             </div>
 
             <!-- 白银 -->
             <div class="nft-column">
               <div class="column-header">
-                <el-tag size="small" effect="plain">白银 x{{ readData.mySilver || 0 }}</el-tag>
+                <el-tag size="small" effect="plain">{{ t('modules.nft.tier.silver') }} x{{ readData.mySilver || 0 }}</el-tag>
                 <span v-if="readData.mySilver > 0" class="boost-tag">+{{ readData.mySilverBoost }}%</span>
               </div>
               <el-scrollbar class="column-body">
@@ -83,14 +86,14 @@ const safeMyNFTs = computed(() => {
                     </el-button>
                   </div>
                 </template>
-                <el-empty v-else description="暂无" :image-size="30" />
+                <el-empty v-else :description="t('common.status.empty')" :image-size="30" />
               </el-scrollbar>
             </div>
 
             <!-- 黄金 -->
             <div class="nft-column">
               <div class="column-header">
-                <el-tag type="warning" size="small" effect="plain">黄金 x{{ readData.myGold || 0 }}</el-tag>
+                <el-tag type="warning" size="small" effect="plain">{{ t('modules.nft.tier.gold') }} x{{ readData.myGold || 0 }}</el-tag>
                 <span v-if="readData.myGold > 0" class="boost-tag">+{{ readData.myGoldBoost }}%</span>
               </div>
               <el-scrollbar class="column-body">
@@ -102,7 +105,7 @@ const safeMyNFTs = computed(() => {
                     </el-button>
                   </div>
                 </template>
-                <el-empty v-else description="暂无" :image-size="30" />
+                <el-empty v-else :description="t('common.status.empty')" :image-size="30" />
               </el-scrollbar>
             </div>
           </div>
@@ -116,18 +119,18 @@ const safeMyNFTs = computed(() => {
             <div class="nft-section-icon">
               <el-icon><CirclePlus /></el-icon>
             </div>
-            <span>铸造勋章</span>
+            <span>{{ t('modules.nft.mint.title') }}</span>
           </div>
         </div>
         <div class="mint-list">
           <el-button class="mint-btn mint-btn--bronze" type="info" :disabled="!canInteract || writeLoading" @click="emit('mint-bronze')">
-            青铜 ({{ readData.bronzePrice || '?' }} CTK)
+            {{ t('modules.nft.mint.button', { tier: t('modules.nft.tier.bronze'), price: readData.bronzePrice || '?' }) }}
           </el-button>
           <el-button class="mint-btn mint-btn--silver" :disabled="!canInteract || writeLoading" @click="emit('mint-silver')">
-            白银 ({{ readData.silverPrice || '?' }} CTK)
+            {{ t('modules.nft.mint.button', { tier: t('modules.nft.tier.silver'), price: readData.silverPrice || '?' }) }}
           </el-button>
           <el-button class="mint-btn mint-btn--gold" type="warning" :disabled="!canInteract || writeLoading" @click="emit('mint-gold')">
-            黄金 ({{ readData.goldPrice || '?' }} CTK)
+            {{ t('modules.nft.mint.button', { tier: t('modules.nft.tier.gold'), price: readData.goldPrice || '?' }) }}
           </el-button>
         </div>
       </div>
@@ -140,15 +143,15 @@ const safeMyNFTs = computed(() => {
           <div class="nft-section-icon">
             <el-icon><Promotion /></el-icon>
           </div>
-          <span>勋章转移</span>
+          <span>{{ t('modules.nft.transfer.title') }}</span>
         </div>
       </div>
       <div class="transfer-content">
         <el-space wrap>
-          <el-input v-model="nftTransferTo" placeholder="接收地址" size="small" style="width: 200px;" />
-          <el-input-number v-model="nftTransferTokenId" :min="0" :precision="0" controls-position="right" size="small" placeholder="NFT Token ID" style="width: 160px;" />
+          <el-input v-model="nftTransferTo" :placeholder="t('common.label.receiver_address')" size="small" style="width: 200px;" />
+          <el-input-number v-model="nftTransferTokenId" :min="0" :precision="0" controls-position="right" size="small" :placeholder="t('common.label.token_id')" style="width: 160px;" />
           <el-button size="small" :disabled="!canInteract || writeLoading" @click="emit('nft-transfer', nftTransferTo, nftTransferTokenId)" class="nft-transfer-btn">
-            转移
+            {{ t('modules.nft.transfer.button') }}
           </el-button>
         </el-space>
       </div>

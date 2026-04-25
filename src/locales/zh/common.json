@@ -1,0 +1,48 @@
+{
+  "language": {
+    "zh": "中文",
+    "en": "English"
+  },
+  "app": {
+    "title": "合约交互"
+  },
+  "button": {
+    "confirm": "确认",
+    "cancel": "取消",
+    "refresh": "刷新",
+    "view": "查看",
+    "execute": "执行",
+    "clear": "清空",
+    "transfer": "转账",
+    "loading": "加载中...",
+    "switch_dark": "切换暗色模式",
+    "switch_light": "切换亮色模式"
+  },
+  "status": {
+    "yes": "是",
+    "no": "否",
+    "success": "成功",
+    "failed": "失败",
+    "pending": "处理中",
+    "unknown": "未知",
+    "empty": "暂无"
+  },
+  "message": {
+    "unknown_error": "未知错误",
+    "contract_not_initialized": "合约实例未初始化",
+    "transaction": "交易",
+    "transaction_failed": "交易失败",
+    "transaction_pending": "{label} 处理中...",
+    "transaction_success": "{label} 成功! ",
+    "loading": "正在加载..."
+  },
+  "label": {
+    "address": "地址",
+    "amount_ctk": "金额 (CTK)",
+    "receiver_address": "接收地址",
+    "token_id": "NFT Token ID",
+    "ctk": "CTK",
+    "nft": "NFT",
+    "token": "Token"
+  }
+}

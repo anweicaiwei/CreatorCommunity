@@ -1,0 +1,22 @@
+{
+  "title": "社区互动",
+  "reward": {
+    "title": "发帖奖励",
+    "desc": "发布内容获得 CTK 奖励",
+    "button": "发帖"
+  },
+  "list": {
+    "title": "帖子列表",
+    "desc": "浏览并参与社区互动",
+    "author": "作者：{author}",
+    "empty": "暂无帖子"
+  },
+  "button": {
+    "comment": "评论"
+  },
+  "message": {
+    "cooldown": "发帖冷却中，请稍后",
+    "submit": "发帖提交中...",
+    "tx_label": "发帖 POST_ID {post_id}"
+  }
+}

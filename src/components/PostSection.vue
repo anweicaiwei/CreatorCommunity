@@ -1,8 +1,12 @@
 <script setup>
+import { computed } from 'vue'
 import { EditPen, Refresh, ChatLineSquare, List } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/card.vue'
 
-defineProps({
+const { t } = useI18n()
+
+const props = defineProps({
   canInteract: Boolean,
   writeLoading: Boolean,
   postLoading: Boolean,
@@ -11,10 +15,18 @@ defineProps({
 })
 
 const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
+
+const postCooldownText = computed(() => {
+  const value = props.readData?.postCooldown || ''
+  if (value === '可发帖' || value === 'Can post') return t('modules.chain_data.cooldown.ready_post')
+  if (value.startsWith('等待 ')) return t('modules.chain_data.cooldown.waiting', { time: value.replace('等待 ', '') })
+  if (value.startsWith('Wait ')) return t('modules.chain_data.cooldown.waiting', { time: value.replace('Wait ', '') })
+  return value
+})
 </script>
 
 <template>
-  <Card title="社区互动" icon="ChatDotRound">
+  <Card :title="t('modules.post.title')" icon="ChatDotRound">
     <!-- 发帖奖励 -->
     <div class="reward-card">
       <div class="reward-card-header">
@@ -22,17 +34,17 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
           <el-icon><EditPen /></el-icon>
         </div>
         <div class="reward-card-info">
-          <span class="reward-card-title">发帖奖励</span>
-          <span class="reward-card-desc">发布内容获得 CTK 奖励</span>
+          <span class="reward-card-title">{{ t('modules.post.reward.title') }}</span>
+          <span class="reward-card-desc">{{ t('modules.post.reward.desc') }}</span>
         </div>
       </div>
       <div class="reward-action-row">
         <el-button :disabled="!canInteract || writeLoading" @click="emit('reward-post')" class="post-action-btn">
           <el-icon><EditPen /></el-icon>
-          <span>发帖</span>
+          <span>{{ t('modules.post.reward.button') }}</span>
         </el-button>
-        <el-tag v-if="readData.postCooldown" type="info" effect="plain" size="small">
-          {{ readData.postCooldown }}
+        <el-tag v-if="postCooldownText" type="info" effect="plain" size="small">
+          {{ postCooldownText }}
         </el-tag>
       </div>
     </div>
@@ -44,11 +56,11 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
           <el-icon><List /></el-icon>
         </div>
         <div class="reward-card-info">
-          <span class="reward-card-title">帖子列表</span>
-          <span class="reward-card-desc">浏览并参与社区互动</span>
+          <span class="reward-card-title">{{ t('modules.post.list.title') }}</span>
+          <span class="reward-card-desc">{{ t('modules.post.list.desc') }}</span>
         </div>
         <el-button size="small" :loading="postLoading" @click="emit('refresh-posts')" style="margin-left: auto;" class="post-refresh-btn">
-          <span>{{ postLoading ? '加载中...' : '刷新' }}</span>
+          <span>{{ postLoading ? t('common.button.loading') : t('common.button.refresh') }}</span>
         </el-button>
       </div>
       
@@ -57,16 +69,16 @@ const emit = defineEmits(['reward-post', 'reward-comment', 'refresh-posts'])
           <div v-for="post in postList" :key="post.postId" class="post-item">
             <div class="post-info">
               <el-tag size="small" type="info" effect="plain">POST_ID: {{ post.postId }}</el-tag>
-              <el-text size="small" type="info">作者：{{ post.authorShort }}</el-text>
+              <el-text size="small" type="info">{{ t('modules.post.list.author', { author: post.authorShort }) }}</el-text>
             </div>
             <el-button size="small" @click="emit('reward-comment', post.author, post.postId)" class="post-action-btn post-action-btn--small">
               <el-icon><ChatLineSquare /></el-icon>
-              评论
+              {{ t('modules.post.button.comment') }}
             </el-button>
           </div>
         </div>
       </el-scrollbar>
-      <el-empty v-else-if="!postLoading" description="暂无帖子" :image-size="40" />
+      <el-empty v-else-if="!postLoading" :description="t('modules.post.list.empty')" :image-size="40" />
     </div>
   </Card>
 </template>

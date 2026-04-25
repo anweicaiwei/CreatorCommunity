@@ -1,0 +1,48 @@
+{
+  "language": {
+    "zh": "中文",
+    "en": "English"
+  },
+  "app": {
+    "title": "Contract Interaction"
+  },
+  "button": {
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "refresh": "Refresh",
+    "view": "View",
+    "execute": "Execute",
+    "clear": "Clear",
+    "transfer": "Transfer",
+    "loading": "Loading...",
+    "switch_dark": "Switch to dark mode",
+    "switch_light": "Switch to light mode"
+  },
+  "status": {
+    "yes": "Yes",
+    "no": "No",
+    "success": "Success",
+    "failed": "Failed",
+    "pending": "Pending",
+    "unknown": "Unknown",
+    "empty": "None"
+  },
+  "message": {
+    "unknown_error": "Unknown error",
+    "contract_not_initialized": "Contract instance is not initialized",
+    "transaction": "Transaction",
+    "transaction_failed": "Transaction failed",
+    "transaction_pending": "{label} processing...",
+    "transaction_success": "{label} succeeded! ",
+    "loading": "Loading..."
+  },
+  "label": {
+    "address": "Address",
+    "amount_ctk": "Amount (CTK)",
+    "receiver_address": "Receiver address",
+    "token_id": "NFT Token ID",
+    "ctk": "CTK",
+    "nft": "NFT",
+    "token": "Token"
+  }
+}

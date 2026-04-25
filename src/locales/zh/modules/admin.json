@@ -1,0 +1,56 @@
+{
+  "title": "管理员功能",
+  "pools": {
+    "overview": "代币池概览",
+    "creator": "创作者池",
+    "interact": "互动池",
+    "nft": "NFT 池",
+    "nft_balance": "NFT 合约余额",
+    "popover_title": "注意",
+    "popover_content": "合约部署时，NFT池中的代币已经全部转移至NFT合约"
+  },
+  "reward": {
+    "title": "奖励发放",
+    "creator_button": "从创作者池中发放代币",
+    "interact_button": "从互动池中发放代币"
+  },
+  "price": {
+    "title": "勋章价格管理",
+    "reset_title": "重置初始价格",
+    "reset_desc": "Bronze:1000 / Silver:5000 / Gold:10000",
+    "adjust_title": "随机调价 ±10%",
+    "adjust_desc": "系统随机调整各级别 NFT 价格"
+  },
+  "withdraw": {
+    "title": "提取 NFT 合约代币",
+    "withdrawable": "可提取额度",
+    "overflow": "溢出额度",
+    "placeholder": "提取金额",
+    "withdraw": "提取",
+    "withdraw_all": "提取全部",
+    "withdraw_overflow": "提取溢出",
+    "note": "提取的 CTK 代币将按 <strong>7:3</strong> 的比例分配至创作者池和互动池"
+  },
+  "message": {
+    "fill_address_amount": "请填写地址和金额",
+    "confirm_send_creator": "确认向 {address} 发放 {amount} CTK（创作者池）？",
+    "confirm_send_interact": "确认向 {address} 发放 {amount} CTK（互动池）？",
+    "confirm_send_title": "确认发放",
+    "confirm_reset_price": "确认重置所有勋章价格为初始值？",
+    "confirm_reset_title": "确认重置",
+    "confirm_adjust_price": "确认随机调整勋章价格（±10%）？",
+    "confirm_adjust_title": "确认调价",
+    "invalid_withdraw_amount": "请输入有效的提取金额",
+    "confirm_withdraw": "确认从NFT合约提取 {amount} CTK？\n提取的代币将按7:3分配给创作者池和互动池",
+    "confirm_withdraw_all": "确认提取全部可提取额度？\n提取的代币将按7:3分配给创作者池和互动池",
+    "confirm_withdraw_overflow": "确认提取溢出代币？\n提取的代币将按7:3分配给创作者池和互动池",
+    "confirm_withdraw_title": "确认提取",
+    "creator_reward_label": "创作者池发放",
+    "interact_reward_label": "互动池发放",
+    "reset_price_label": "重置勋章价格",
+    "adjust_price_label": "随机调价",
+    "withdraw_label": "提取 {amount} CTK",
+    "withdraw_all_label": "提取全部可提取CTK",
+    "withdraw_overflow_label": "提取溢出CTK"
+  }
+}

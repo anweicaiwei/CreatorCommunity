@@ -1,0 +1,31 @@
+{
+  "title": "交易历史",
+  "empty": "暂无交易记录",
+  "error": {
+    "rejected": "您取消了交易",
+    "insufficient_funds": "ETH 余额不足以支付燃气费"
+  },
+  "label": {
+    "mint_bronze": "铸造青铜勋章",
+    "mint_silver": "铸造白银勋章",
+    "mint_gold": "铸造黄金勋章",
+    "burn": "销毁勋章",
+    "transfer_medal": "转移勋章",
+    "withdraw": "提现",
+    "post": "发帖",
+    "comment": "评论帖子",
+    "claim_initial": "领取初始奖励",
+    "creator_reward": "创作者池发放",
+    "interact_reward": "互动池发放",
+    "ctk_transfer": "CTK转账",
+    "reset_price": "重置勋章价格",
+    "adjust_price": "随机调价",
+    "withdraw_post": "提现帖奖",
+    "withdraw_comment": "提现评奖",
+    "withdraw_initial": "提现初始奖",
+    "withdraw_all": "全部提现",
+    "withdraw_all_ctk": "提取全部可提取CTK",
+    "withdraw_overflow": "提取溢出CTK",
+    "default": "交易"
+  }
+}

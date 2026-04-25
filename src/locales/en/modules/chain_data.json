@@ -1,0 +1,45 @@
+{
+  "title": "Current Account Information",
+  "loading": "Reloading account data...",
+  "empty": "No account data. Please connect your wallet and refresh first",
+  "progress": {
+    "loading_store": "Loading stored data...",
+    "loading_posts": "Loading post list...",
+    "loading_user": "Loading user data...",
+    "loading_pools": "Loading pool data..."
+  },
+  "cooldown": {
+    "ready_post": "Can post",
+    "ready_comment": "Can comment",
+    "waiting": "Wait {time}"
+  },
+  "summary": {
+    "medal_count": "CTK: {ctk} | Medals: {count}",
+    "pending": "| Pending withdrawal: {amount} CTK",
+    "query_failed": "Data query failed: {message}"
+  },
+  "category": {
+    "account": "Account Information",
+    "interaction": "Interaction Status",
+    "nft": "Medal Information",
+    "rewards": "Pending Rewards"
+  },
+  "field": {
+    "ctk_balance": "CTK Balance",
+    "has_claimed_initial": "Initial Reward Claimed",
+    "post_cooldown": "Post Cooldown",
+    "comment_cooldown": "Comment Cooldown",
+    "nft_boost": "Total Medal Boost (%)",
+    "bronze_price": "Bronze Medal Price",
+    "silver_price": "Silver Medal Price",
+    "gold_price": "Gold Medal Price",
+    "nft_count": "Total Medal Count",
+    "my_bronze": "Held Bronze Medals",
+    "my_silver": "Held Silver Medals",
+    "my_gold": "Held Gold Medals",
+    "pending_post_reward": "Pending Post Rewards",
+    "pending_comment_reward": "Pending Comment Rewards",
+    "pending_initial_reward": "Pending Initial Reward",
+    "pending_total_reward": "Total Pending Rewards"
+  }
+}

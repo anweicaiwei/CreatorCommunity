@@ -2,6 +2,7 @@ import { ref, shallowRef, computed, watch } from 'vue'
 import { ethers } from 'ethers'
 import { getContracts, NETWORK_CONFIG } from '@/contracts'
 import { useContractAddress } from '@/composables/useContractAddress'
+import { t } from '@/locales'
 
 const account = ref(null)
 const chainId = ref(null)
@@ -13,7 +14,7 @@ const isInitializing = ref(false)
 const error = ref(null)
 const currentNetwork = computed(() => {
   if (Number(chainId.value) === NETWORK_CONFIG.targetChainId) return NETWORK_CONFIG
-  return { name: `未知网络 (${chainId.value})` }
+  return { name: `${t('modules.wallet.status.unknown_network')} (${chainId.value})` }
 })
 const isOwner = ref(false)
 
@@ -54,7 +55,7 @@ async function initAutoConnect() {
     return true
   } catch (e) {
     console.error('Auto connect failed:', e)
-    error.value = `自动恢复连接失败: ${e.message}`
+    error.value = t('modules.wallet.error.auto_connect_failed', { message: e.message })
     return false
   } finally {
     isInitializing.value = false
@@ -104,7 +105,7 @@ watch([tokenAddress, nftAddress, provider, signer], () => {
 
 async function connect() {
   if (!window.ethereum) {
-    error.value = '请安装 MetaMask 钢包扩展'
+    error.value = t('modules.wallet.error.install_metamask')
     return
   }
 
@@ -126,9 +127,9 @@ async function connect() {
     loadAddresses(Number(network.chainId))
   } catch (e) {
     if (e.code === 4001) {
-      error.value = '您拒绝了钱包连接请求'
+      error.value = t('modules.wallet.error.rejected')
     } else {
-      error.value = `连接失败: ${e.message}`
+      error.value = t('modules.wallet.error.connect_failed', { message: e.message })
     }
   } finally {
     isInitializing.value = false
@@ -157,10 +158,10 @@ async function switchNetwork() {
           }]
         })
       } catch (addErr) {
-        error.value = '添加网络失败，请手动切换'
+        error.value = t('modules.wallet.error.add_network_failed')
       }
     } else {
-      error.value = '切换网络失败，请手动在 MetaMask 中切换'
+      error.value = t('modules.wallet.error.switch_network_failed')
     }
   }
 }

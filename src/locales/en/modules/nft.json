@@ -1,0 +1,43 @@
+{
+  "title": "Medal Management",
+  "tier": {
+    "bronze": "Bronze",
+    "silver": "Silver",
+    "gold": "Gold",
+    "unknown": "Unknown"
+  },
+  "my": {
+    "title": "My Medals",
+    "theoretical_boost": "Theoretical yield: {value}%",
+    "actual_boost": "Actual yield: {value}%",
+    "actual_boost_tip": "Actual reward boost (capped at 50%)"
+  },
+  "mint": {
+    "title": "Mint Medal",
+    "button": "{tier} ({price} CTK)",
+    "confirm": "Confirm minting a {tier} medal?\nCost: {price} CTK",
+    "confirm_title": "Confirm Mint"
+  },
+  "burn": {
+    "confirm": "Confirm burning NFT TOKEN_ID {token_id}?\nYou will receive {amount} CTK back after burning (80% of value)",
+    "confirm_title": "Confirm Burn",
+    "confirm_button": "Confirm Burn"
+  },
+  "transfer": {
+    "title": "Medal Transfer",
+    "button": "Transfer",
+    "confirm": "Confirm transferring NFT TOKEN_ID {token_id} to {address}?",
+    "confirm_title": "Confirm Transfer"
+  },
+  "message": {
+    "insufficient_ctk": "Insufficient CTK balance",
+    "not_owner": "You are not the owner of this medal",
+    "token_not_found": "This tokenId does not exist",
+    "receiver_required": "Please enter a receiver address",
+    "mint_bronze_label": "Mint Bronze Medal",
+    "mint_silver_label": "Mint Silver Medal",
+    "mint_gold_label": "Mint Gold Medal",
+    "burn_label": "Burn Medal TOKEN_ID {token_id}",
+    "transfer_label": "Transfer Medal TOKEN_ID {token_id}"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "title": "奖励管理",
+  "initial": {
+    "title": "初始奖励",
+    "desc": "新用户可领取 1 CTK",
+    "button": "领取 1 CTK"
+  },
+  "pending": {
+    "title": "待提现奖励",
+    "desc": "社区互动产生的奖励",
+    "post": "帖子",
+    "comment": "评论",
+    "initial": "初始奖励",
+    "total": "合计",
+    "empty": "刷新数据后查看待提现奖励"
+  },
+  "button": {
+    "withdraw_post": "提取帖子奖励",
+    "withdraw_comment": "提取评论奖励",
+    "withdraw_initial": "提取初始奖励",
+    "withdraw_all": "一键提取全部"
+  },
+  "transfer": {
+    "title": "CTK 转账",
+    "desc": "将 CTK 转账给其他用户"
+  },
+  "message": {
+    "already_claimed": "已领取初始奖励",
+    "no_post_reward": "无待提现帖子奖励",
+    "no_comment_reward": "无待提现评论奖励",
+    "no_initial_reward": "无待提现初始奖励",
+    "no_reward": "无待提现奖励",
+    "fill_address_amount": "请填写地址和金额",
+    "confirm_transfer": "确认向 {address} 转账 {amount} CTK？",
+    "confirm_transfer_title": "确认转账",
+    "claim_initial_label": "领取初始奖励",
+    "withdraw_post_label": "提现帖奖",
+    "withdraw_comment_label": "提现评奖",
+    "withdraw_initial_label": "提现初始奖",
+    "withdraw_all_label": "全部提现",
+    "ctk_transfer_label": "CTK转账"
+  }
+}

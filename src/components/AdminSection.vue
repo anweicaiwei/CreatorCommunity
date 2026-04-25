@@ -2,7 +2,10 @@
 import { Money, RefreshRight, Download, Refresh, ChatDotRound, Coin, Setting, Select, Medal } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Warning } from '@element-plus/icons-vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   canInteract: Boolean,
@@ -45,28 +48,28 @@ function refreshPools() {
 </script>
 
 <template>
-  <Card title="管理员功能" icon="Setting">
+  <Card :title="t('modules.admin.title')" icon="Setting">
     <!-- 顶部池额度统计 - 2*2布局 -->
     <div class="pools-overview">
       <div class="pools-header">
-        <span class="pools-title">代币池概览</span>
+        <span class="pools-title">{{ t('modules.admin.pools.overview') }}</span>
         <el-button size="small" @click="refreshPools" :disabled="!canInteract" class="refresh-btn">
           <el-icon><Refresh /></el-icon>
-          刷新
+          {{ t('common.button.refresh') }}
         </el-button>
       </div>
       <div class="pools-cards">
         <div class="pool-card pool-card-creator">
           <div class="pool-card-icon"><el-icon><Money /></el-icon></div>
           <div class="pool-card-info">
-            <span class="pool-card-label">创作者池</span>
+            <span class="pool-card-label">{{ t('modules.admin.pools.creator') }}</span>
             <span class="pool-card-value">{{ pools.creator }}</span>
           </div>
         </div>
         <div class="pool-card pool-card-interact">
           <div class="pool-card-icon"><el-icon><ChatDotRound /></el-icon></div>
           <div class="pool-card-info">
-            <span class="pool-card-label">互动池</span>
+            <span class="pool-card-label">{{ t('modules.admin.pools.interact') }}</span>
             <span class="pool-card-value">{{ pools.interact }}</span>
           </div>
         </div>
@@ -74,8 +77,8 @@ function refreshPools() {
           <div class="pool-card-icon"><el-icon><Medal /></el-icon></div>
           <div class="pool-card-info">
             <span class="pool-card-label">
-              NFT 池
-              <el-popover title="注意" content="合约部署时，NFT池中的代币已经全部转移至NFT合约" placement="top">
+              {{ t('modules.admin.pools.nft') }}
+              <el-popover :title="t('modules.admin.pools.popover_title')" :content="t('modules.admin.pools.popover_content')" placement="top">
                 <template #reference>
                   <el-icon class="warning-icon"><Warning /></el-icon>
                 </template>
@@ -87,7 +90,7 @@ function refreshPools() {
         <div class="pool-card pool-card-balance">
           <div class="pool-card-icon"><el-icon><Coin /></el-icon></div>
           <div class="pool-card-info">
-            <span class="pool-card-label">NFT 合约余额</span>
+            <span class="pool-card-label">{{ t('modules.admin.pools.nft_balance') }}</span>
             <span class="pool-card-value">{{ pools.nftContract }}</span>
           </div>
         </div>
@@ -100,25 +103,25 @@ function refreshPools() {
       <div class="function-card">
         <div class="function-header">
           <el-icon><Money /></el-icon>
-          <span>奖励发放</span>
+          <span>{{ t('modules.admin.reward.title') }}</span>
         </div>
         <div class="function-body">
           <div class="input-row">
-            <el-input v-model="adminTo" placeholder="接收地址" size="default" clearable />
+            <el-input v-model="adminTo" :placeholder="t('common.label.receiver_address')" size="default" clearable />
           </div>
           <div class="input-row">
-            <el-input v-model="adminAmount" placeholder="金额 (CTK)" size="default" clearable>
+            <el-input v-model="adminAmount" :placeholder="t('common.label.amount_ctk')" size="default" clearable>
               <template #append>CTK</template>
             </el-input>
           </div>
           <div class="action-buttons">
             <el-button :disabled="!canInteract || writeLoading" @click="emit('send-creator', adminTo, adminAmount)" class="action-btn action-btn--creator">
               <el-icon><Select /></el-icon>
-              从创作者池中发放代币
+              {{ t('modules.admin.reward.creator_button') }}
             </el-button>
             <el-button :disabled="!canInteract || writeLoading" @click="emit('send-interact', adminTo, adminAmount)" class="action-btn action-btn--interact">
               <el-icon><Select /></el-icon>
-              从互动池中发放代币
+              {{ t('modules.admin.reward.interact_button') }}
             </el-button>
           </div>
         </div>
@@ -128,7 +131,7 @@ function refreshPools() {
       <div class="function-card">
         <div class="function-header">
           <el-icon><RefreshRight /></el-icon>
-          <span>勋章价格管理</span>
+          <span>{{ t('modules.admin.price.title') }}</span>
         </div>
         <div class="function-body">
           <div class="price-actions">
@@ -137,20 +140,20 @@ function refreshPools() {
                 <el-icon><Refresh /></el-icon>
               </div>
               <div class="price-action-text">
-                <span class="price-action-title">重置初始价格</span>
-                <span class="price-action-desc">Bronze:1000 / Silver:5000 / Gold:10000</span>
+                <span class="price-action-title">{{ t('modules.admin.price.reset_title') }}</span>
+                <span class="price-action-desc">{{ t('modules.admin.price.reset_desc') }}</span>
               </div>
-              <el-button type="info" size="small" :disabled="!canInteract || writeLoading">执行</el-button>
+              <el-button type="info" size="small" :disabled="!canInteract || writeLoading">{{ t('common.button.execute') }}</el-button>
             </div>
             <div class="price-action-item" @click="emit('adjust-price')" :class="{ disabled: !canInteract || writeLoading }">
               <div class="price-action-icon adjust-icon">
                 <el-icon><Setting /></el-icon>
               </div>
               <div class="price-action-text">
-                <span class="price-action-title">随机调价 ±10%</span>
-                <span class="price-action-desc">系统随机调整各级别 NFT 价格</span>
+                <span class="price-action-title">{{ t('modules.admin.price.adjust_title') }}</span>
+                <span class="price-action-desc">{{ t('modules.admin.price.adjust_desc') }}</span>
               </div>
-              <el-button size="small" :disabled="!canInteract || writeLoading">执行</el-button>
+              <el-button size="small" :disabled="!canInteract || writeLoading">{{ t('common.button.execute') }}</el-button>
             </div>
           </div>
         </div>
@@ -161,16 +164,16 @@ function refreshPools() {
     <div class="withdraw-section">
       <div class="withdraw-header">
         <el-icon><Download /></el-icon>
-        <span>提取 NFT 合约代币</span>
+        <span>{{ t('modules.admin.withdraw.title') }}</span>
       </div>
       <div class="withdraw-content">
         <div class="withdraw-stats">
           <div class="withdraw-stat">
-            <span class="stat-label">可提取额度</span>
+            <span class="stat-label">{{ t('modules.admin.withdraw.withdrawable') }}</span>
             <span class="stat-value highlight">{{ pools.withdrawable }} CTK</span>
           </div>
           <div class="withdraw-stat">
-            <span class="stat-label">溢出额度</span>
+            <span class="stat-label">{{ t('modules.admin.withdraw.overflow') }}</span>
             <span class="stat-value warning">{{ pools.overflow }} CTK</span>
           </div>
         </div>
@@ -179,23 +182,23 @@ function refreshPools() {
             v-model="withdrawAmount"
             :min="0"
             :precision="2"
-            placeholder="提取金额"
+            :placeholder="t('modules.admin.withdraw.placeholder')"
             size="default"
             class="withdraw-input"
           />
           <el-button :disabled="!canInteract || writeLoading || !withdrawAmount || withdrawAmount <= 0" @click="emit('withdraw-ctk', withdrawAmount)">
-            提取
+            {{ t('modules.admin.withdraw.withdraw') }}
           </el-button>
           <el-button :disabled="!canInteract || !pools.withdrawable || pools.withdrawable === '0'" @click="emit('withdraw-all-ctk')">
-            提取全部
+            {{ t('modules.admin.withdraw.withdraw_all') }}
           </el-button>
           <el-button :disabled="!canInteract || !pools.overflow || pools.overflow === '0'" @click="emit('withdraw-overflow')">
-            提取溢出
+            {{ t('modules.admin.withdraw.withdraw_overflow') }}
           </el-button>
         </div>
         <div class="withdraw-note">
           <el-icon><Warning /></el-icon>
-          <span>提取的 CTK 代币将按 <strong>7:3</strong> 的比例分配至创作者池和互动池</span>
+          <span v-html="t('modules.admin.withdraw.note')" />
         </div>
       </div>
     </div>

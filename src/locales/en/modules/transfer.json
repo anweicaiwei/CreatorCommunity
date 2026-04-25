@@ -1,0 +1,9 @@
+{
+  "title": "Asset Transfer",
+  "ctk": "CTK Transfer",
+  "nft": "Medal Transfer",
+  "button": {
+    "ctk_transfer": "Transfer",
+    "nft_transfer": "Transfer"
+  }
+}

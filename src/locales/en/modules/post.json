@@ -1,0 +1,22 @@
+{
+  "title": "Community Interaction",
+  "reward": {
+    "title": "Post Reward",
+    "desc": "Publish content to earn CTK rewards",
+    "button": "Post"
+  },
+  "list": {
+    "title": "Post List",
+    "desc": "Browse and participate in community interactions",
+    "author": "Author: {author}",
+    "empty": "No posts"
+  },
+  "button": {
+    "comment": "Comment"
+  },
+  "message": {
+    "cooldown": "Post is cooling down, please wait",
+    "submit": "Submitting post...",
+    "tx_label": "Post POST_ID {post_id}"
+  }
+}

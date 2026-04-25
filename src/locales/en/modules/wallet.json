@@ -1,0 +1,76 @@
+{
+  "title": "Wallet",
+  "connect": {
+    "title": "Connect Wallet",
+    "desc": "Connect your MetaMask wallet to participate in community interactions",
+    "button": "Connect MetaMask",
+    "connecting": "Connecting..."
+  },
+  "status": {
+    "connected": "Connected",
+    "network_error": "Network Error",
+    "deployed": "Deployed",
+    "not_deployed": "Not Deployed",
+    "current_network": "Current Network",
+    "unknown_network": "Unknown Network",
+    "admin_permission": "Admin Permission",
+    "connect_time": "Connection Time",
+    "calculating": "Calculating...",
+    "block_explorer": "Block Explorer",
+    "view_address": "View Address →"
+  },
+  "contract": {
+    "status": "Contract Status",
+    "deploy_desc": "Deploying the CreatorToken contract will automatically create the paired CreatorNFT contract",
+    "creator_token": "CreatorToken ERC20 token",
+    "creator_nft": "CreatorNFT ERC721 medal",
+    "view": "View"
+  },
+  "tip": {
+    "wrong_network": "The current network is incorrect. Please switch to the {network} network",
+    "owner": "You have contract admin permission and can manage configuration",
+    "connected": "Connected successfully. You can participate in community interactions to earn rewards"
+  },
+  "admin": {
+    "advanced": "Advanced Admin",
+    "transfer_feature": "Transfer Feature",
+    "on": "On",
+    "off": "Off",
+    "transfer_hint": "When enabled, token transfer and medal transfer features will be shown",
+    "disable_contract": "Disable Contract"
+  },
+  "button": {
+    "switch_network": "Switch Network",
+    "disconnect": "Disconnect"
+  },
+  "message": {
+    "disconnect_title": "Disconnect Wallet",
+    "disconnect_confirm": "Confirm disconnecting the wallet?",
+    "disconnect_clear": "The following cached data will be cleared:",
+    "disconnect_keep": "The following cached data will be kept:",
+    "disconnect_confirm_button": "Confirm Disconnect",
+    "disconnected": "Wallet disconnected",
+    "cache_balance": "Account balance and holdings",
+    "cache_nft": "Medal holdings and boost data",
+    "cache_cooldown": "Post/comment cooldown status",
+    "cache_rewards": "Pending reward data",
+    "cache_settings": "Custom settings (display preferences, etc.)",
+    "keep_tx": "Transaction history",
+    "keep_posts": "Published post data",
+    "keep_pools": "Pool configuration (admin)"
+  },
+  "error": {
+    "install_metamask": "Please install the MetaMask wallet extension",
+    "rejected": "You rejected the wallet connection request",
+    "connect_failed": "Connection failed: {message}",
+    "auto_connect_failed": "Auto reconnect failed: {message}",
+    "add_network_failed": "Failed to add network. Please switch manually",
+    "switch_network_failed": "Failed to switch network. Please switch manually in MetaMask"
+  },
+  "time": {
+    "second": "{count}s",
+    "minute_second": "{minutes}m {seconds}s",
+    "hour_minute": "{hours}h {minutes}m",
+    "day_hour": "{days}d {hours}h"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "title": "勋章管理",
+  "tier": {
+    "bronze": "青铜",
+    "silver": "白银",
+    "gold": "黄金",
+    "unknown": "未知"
+  },
+  "my": {
+    "title": "我的勋章",
+    "theoretical_boost": "理论收益: {value}%",
+    "actual_boost": "实际收益: {value}%",
+    "actual_boost_tip": "实际奖励增益（上限为50%）"
+  },
+  "mint": {
+    "title": "铸造勋章",
+    "button": "{tier} ({price} CTK)",
+    "confirm": "确认铸造{tier}勋章？\n需消耗 {price} CTK",
+    "confirm_title": "确认铸造"
+  },
+  "burn": {
+    "confirm": "确认销毁 NFT TOKEN_ID {token_id}？\n销毁后返还 {amount} CTK（价值的80%）",
+    "confirm_title": "确认销毁",
+    "confirm_button": "确认销毁"
+  },
+  "transfer": {
+    "title": "勋章转移",
+    "button": "转移",
+    "confirm": "确认将 NFT TOKEN_ID {token_id} 转移至 {address}？",
+    "confirm_title": "确认转移"
+  },
+  "message": {
+    "insufficient_ctk": "CTK余额不足",
+    "not_owner": "您不是该勋章的所有者",
+    "token_not_found": "该tokenId不存在",
+    "receiver_required": "请填写接收地址",
+    "mint_bronze_label": "铸造青铜勋章",
+    "mint_silver_label": "铸造白银勋章",
+    "mint_gold_label": "铸造黄金勋章",
+    "burn_label": "销毁勋章 TOKEN_ID {token_id}",
+    "transfer_label": "转移勋章 TOKEN_ID {token_id}"
+  }
+}

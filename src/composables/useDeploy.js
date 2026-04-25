@@ -3,6 +3,7 @@ import { ethers } from 'ethers'
 import CreatorTokenABI from '@/contracts/CreatorToken_ABI.json'
 import CreatorTokenBytecode from '@/contracts/CreatorToken_Bytecode?raw'
 import { useContractAddress } from '@/composables/useContractAddress'
+import { t } from '@/locales'
 
 const deployStatus = ref('idle') // idle | deploying | confirming | fetching-nft | success | error
 const deployError = ref(null)
@@ -11,7 +12,7 @@ const deployedNftAddress = ref(null)
 
 async function deploy(signer) {
   if (!signer) {
-    deployError.value = '钱包未连接，无法部署'
+    deployError.value = t('modules.deploy.error.wallet_not_connected')
     deployStatus.value = 'error'
     return
   }
@@ -47,15 +48,15 @@ async function deploy(signer) {
   } catch (e) {
     deployStatus.value = 'error'
     if (e.code === 4001 || e.code === 'ACTION_REJECTED') {
-      deployError.value = '您取消了部署交易'
+      deployError.value = t('modules.deploy.error.rejected')
     } else if (e.code === 'INSUFFICIENT_FUNDS') {
-      deployError.value = 'ETH 余额不足以支付部署燃气费'
+      deployError.value = t('modules.deploy.error.insufficient_funds')
     } else if (e.reason) {
       deployError.value = e.reason
     } else if (e.info?.error?.message) {
       deployError.value = e.info.error.message
     } else {
-      deployError.value = e.shortMessage || e.message || '部署失败'
+      deployError.value = e.shortMessage || e.message || t('modules.deploy.status.failed')
     }
     throw e
   }

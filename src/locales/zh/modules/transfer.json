@@ -1,0 +1,9 @@
+{
+  "title": "资产转移",
+  "ctk": "CTK 转账",
+  "nft": "勋章转移",
+  "button": {
+    "ctk_transfer": "转账",
+    "nft_transfer": "转移"
+  }
+}

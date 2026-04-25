@@ -1,0 +1,45 @@
+{
+  "title": "当前账户相关信息",
+  "loading": "正在重新加载账户数据...",
+  "empty": "暂无账户数据，请先连接钱包并刷新",
+  "progress": {
+    "loading_store": "加载存储数据...",
+    "loading_posts": "加载帖子列表...",
+    "loading_user": "加载用户数据...",
+    "loading_pools": "加载池子数据..."
+  },
+  "cooldown": {
+    "ready_post": "可发帖",
+    "ready_comment": "可评论",
+    "waiting": "等待 {time}"
+  },
+  "summary": {
+    "medal_count": "CTK: {ctk} | 勋章: {count} 枚",
+    "pending": "| 待提现: {amount} CTK",
+    "query_failed": "数据查询失败: {message}"
+  },
+  "category": {
+    "account": "账户信息",
+    "interaction": "互动状态",
+    "nft": "勋章信息",
+    "rewards": "待提现奖励"
+  },
+  "field": {
+    "ctk_balance": "CTK余额",
+    "has_claimed_initial": "已领初始奖励",
+    "post_cooldown": "发帖冷却",
+    "comment_cooldown": "评论冷却",
+    "nft_boost": "勋章总增益(%)",
+    "bronze_price": "青铜勋章价格",
+    "silver_price": "白银勋章价格",
+    "gold_price": "黄金勋章价格",
+    "nft_count": "总持有勋章数量",
+    "my_bronze": "持有青铜勋章数量",
+    "my_silver": "持有白银勋章数量",
+    "my_gold": "持有黄金勋章数量",
+    "pending_post_reward": "待提现的发帖奖励",
+    "pending_comment_reward": "待提现的评论奖励",
+    "pending_initial_reward": "待提现的初始奖励",
+    "pending_total_reward": "合计待提现奖励"
+  }
+}

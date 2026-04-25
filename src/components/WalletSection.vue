@@ -1,8 +1,11 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { SwitchButton, Connection, Coin, User, Odometer, Link, Clock, InfoFilled, FolderDelete, Warning, CircleCheck, Document } from '@element-plus/icons-vue'
 import { NETWORK_CONFIG } from '@/contracts'
 import Card from '@/components/card.vue'
+
+const { t } = useI18n()
 
 const props = defineProps({
   isDark: Boolean,
@@ -120,23 +123,23 @@ function updateTimeSinceConnect() {
 }
 
 function formatDuration(seconds) {
-  if (seconds < 60) return `${seconds}秒`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}分${seconds % 60}秒`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}小时${Math.floor((seconds % 3600) / 60)}分`
-  return `${Math.floor(seconds / 86400)}天${Math.floor((seconds % 86400) / 3600)}小时`
+  if (seconds < 60) return t('modules.wallet.time.second', { count: seconds })
+  if (seconds < 3600) return t('modules.wallet.time.minute_second', { minutes: Math.floor(seconds / 60), seconds: seconds % 60 })
+  if (seconds < 86400) return t('modules.wallet.time.hour_minute', { hours: Math.floor(seconds / 3600), minutes: Math.floor((seconds % 3600) / 60) })
+  return t('modules.wallet.time.day_hour', { days: Math.floor(seconds / 86400), hours: Math.floor((seconds % 86400) / 3600) })
 }
 </script>
 
 <template>
-  <Card title="钱包" icon="Wallet">
+  <Card :title="t('modules.wallet.title')" icon="Wallet">
     <!-- 未连接状态 -->
     <div v-if="!isConnected" class="wallet-connect-card">
       <div class="wallet-connect-icon">
         <el-icon><Coin /></el-icon>
       </div>
       <div class="wallet-connect-info">
-        <span class="wallet-connect-title">连接钱包</span>
-        <span class="wallet-connect-desc">连接 MetaMask 钱包以参与社区互动</span>
+        <span class="wallet-connect-title">{{ t('modules.wallet.connect.title') }}</span>
+        <span class="wallet-connect-desc">{{ t('modules.wallet.connect.desc') }}</span>
       </div>
       <el-button
         type="primary"
@@ -144,7 +147,7 @@ function formatDuration(seconds) {
         @click="emit('connect')"
         class="wallet-connect-btn"
       >
-        {{ isInitializing ? '连接中...' : '连接 MetaMask' }}
+        {{ isInitializing ? t('modules.wallet.connect.connecting') : t('modules.wallet.connect.button') }}
       </el-button>
       <el-text v-if="error" type="danger" size="small" class="wallet-error">{{ error }}</el-text>
     </div>
@@ -160,7 +163,7 @@ function formatDuration(seconds) {
           <div class="wallet-address-row">
             <span class="wallet-address-short">{{ formattedAccount }}</span>
             <el-tag :type="isCorrectNetwork ? 'success' : 'danger'" size="small" effect="plain">
-              {{ isCorrectNetwork ? '已连接' : '网络错误' }}
+              {{ isCorrectNetwork ? t('modules.wallet.status.connected') : t('modules.wallet.status.network_error') }}
             </el-tag>
           </div>
           <div class="wallet-address-full">{{ account }}</div>
@@ -174,24 +177,24 @@ function formatDuration(seconds) {
             <el-icon><Coin /></el-icon>
           </div>
           <div class="contract-status-text">
-            <span class="contract-status-title">合约状态</span>
+            <span class="contract-status-title">{{ t('modules.wallet.contract.status') }}</span>
             <el-tag :type="hasAddresses ? 'success' : 'warning'" size="small" effect="plain">
-              {{ hasAddresses ? '已部署' : '未部署' }}
+              {{ hasAddresses ? t('modules.wallet.status.deployed') : t('modules.wallet.status.not_deployed') }}
             </el-tag>
           </div>
         </div>
         
         <!-- 未部署：显示部署按钮 -->
         <div v-if="!hasAddresses" class="contract-deploy-prompt">
-          <p class="deploy-desc">部署 CreatorToken 合约将自动创建配套的 CreatorNFT 合约</p>
+          <p class="deploy-desc">{{ t('modules.wallet.contract.deploy_desc') }}</p>
           <div class="deploy-info-list">
             <div class="deploy-info-item">
               <el-tag size="small" type="success" effect="plain">CTK</el-tag>
-              <span>CreatorToken ERC20 代币</span>
+              <span>{{ t('modules.wallet.contract.creator_token') }}</span>
             </div>
             <div class="deploy-info-item">
               <el-tag size="small" type="warning" effect="plain">CMN</el-tag>
-              <span>CreatorNFT ERC721 勋章</span>
+              <span>{{ t('modules.wallet.contract.creator_nft') }}</span>
             </div>
           </div>
           <el-button
@@ -200,13 +203,13 @@ function formatDuration(seconds) {
             @click="emit('deploy')"
             class="contract-deploy-btn"
           >
-            <template v-if="deployStatus === 'deploying'">部署中...</template>
-            <template v-else-if="deployStatus === 'confirming'">等待确认...</template>
-            <template v-else-if="deployStatus === 'fetching-nft'">获取NFT地址...</template>
-            <template v-else>部署合约</template>
+            <template v-if="deployStatus === 'deploying'">{{ t('modules.deploy.status.deploying') }}</template>
+            <template v-else-if="deployStatus === 'confirming'">{{ t('modules.deploy.status.confirming') }}</template>
+            <template v-else-if="deployStatus === 'fetching-nft'">{{ t('modules.deploy.status.fetching_nft') }}</template>
+            <template v-else>{{ t('modules.deploy.button.deploy') }}</template>
           </el-button>
           <el-text v-if="deployStatus === 'success'" type="success" class="deploy-status-text">
-            部署成功!
+            {{ t('modules.deploy.status.success') }}
           </el-text>
           <el-text v-if="deployError" type="danger" class="deploy-status-text">{{ deployError }}</el-text>
         </div>
@@ -220,7 +223,7 @@ function formatDuration(seconds) {
             </div>
             <div class="contract-address-value">
               <span class="mono">{{ tokenAddress }}</span>
-              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${tokenAddress}`" target="_blank" size="small">查看</el-link>
+              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${tokenAddress}`" target="_blank" size="small">{{ t('modules.wallet.contract.view') }}</el-link>
             </div>
           </div>
           <div class="contract-address-item">
@@ -230,7 +233,7 @@ function formatDuration(seconds) {
             </div>
             <div class="contract-address-value">
               <span class="mono">{{ nftAddress }}</span>
-              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${nftAddress}`" target="_blank" size="small">查看</el-link>
+              <el-link v-if="blockExplorer" :href="`${blockExplorer}/address/${nftAddress}`" target="_blank" size="small">{{ t('modules.wallet.contract.view') }}</el-link>
             </div>
           </div>
         </div>
@@ -243,9 +246,9 @@ function formatDuration(seconds) {
             <el-icon><Odometer /></el-icon>
           </div>
           <div class="wallet-status-info">
-            <span class="wallet-status-label">当前网络</span>
+            <span class="wallet-status-label">{{ t('modules.wallet.status.current_network') }}</span>
             <el-tag :type="isCorrectNetwork ? 'success' : 'danger'" size="small" effect="plain">
-              {{ currentNetwork?.name || '未知网络' }}
+              {{ currentNetwork?.name || t('modules.wallet.status.unknown_network') }}
             </el-tag>
           </div>
         </div>
@@ -255,9 +258,9 @@ function formatDuration(seconds) {
             <el-icon><User /></el-icon>
           </div>
           <div class="wallet-status-info">
-            <span class="wallet-status-label">管理员权限</span>
+            <span class="wallet-status-label">{{ t('modules.wallet.status.admin_permission') }}</span>
             <el-tag :type="isOwner ? 'warning' : 'info'" size="small" effect="plain">
-              {{ isOwner ? '是' : '否' }}
+              {{ isOwner ? t('common.status.yes') : t('common.status.no') }}
             </el-tag>
           </div>
         </div>
@@ -267,8 +270,8 @@ function formatDuration(seconds) {
             <el-icon><Clock /></el-icon>
           </div>
           <div class="wallet-status-info">
-            <span class="wallet-status-label">连接时间</span>
-            <span class="wallet-status-value time-value">{{ timeSinceConnect || '计算中...' }}</span>
+            <span class="wallet-status-label">{{ t('modules.wallet.status.connect_time') }}</span>
+            <span class="wallet-status-value time-value">{{ timeSinceConnect || t('modules.wallet.status.calculating') }}</span>
           </div>
         </div>
 
@@ -277,8 +280,8 @@ function formatDuration(seconds) {
             <el-icon><Link /></el-icon>
           </div>
           <div class="wallet-status-info">
-            <span class="wallet-status-label">区块浏览器</span>
-            <a :href="explorerUrl" target="_blank" class="wallet-explorer-link">查看地址 →</a>
+            <span class="wallet-status-label">{{ t('modules.wallet.status.block_explorer') }}</span>
+            <a :href="explorerUrl" target="_blank" class="wallet-explorer-link">{{ t('modules.wallet.status.view_address') }}</a>
           </div>
         </div>
       </div>
@@ -287,13 +290,13 @@ function formatDuration(seconds) {
       <div class="wallet-tip">
         <el-icon class="wallet-tip-icon"><InfoFilled /></el-icon>
         <span v-if="!isCorrectNetwork" class="wallet-tip-text warning">
-          当前网络不正确，请切换到 {{ NETWORK_CONFIG.networkName || 'Sepolia' }} 网络
+          {{ t('modules.wallet.tip.wrong_network', { network: NETWORK_CONFIG.networkName || 'Sepolia' }) }}
         </span>
         <span v-else-if="isOwner" class="wallet-tip-text success">
-          您拥有合约管理员权限，可以进行配置管理操作
+          {{ t('modules.wallet.tip.owner') }}
         </span>
         <span v-else class="wallet-tip-text">
-          连接成功！您可以参与社区互动获取奖励
+          {{ t('modules.wallet.tip.connected') }}
         </span>
       </div>
 
@@ -305,34 +308,34 @@ function formatDuration(seconds) {
         <div class="admin-section-header">
           <div class="admin-title">
             <el-icon><User /></el-icon>
-            <span>高级管理</span>
+            <span>{{ t('modules.wallet.admin.advanced') }}</span>
           </div>
         </div>
         <div class="admin-options">
           <div class="admin-option">
             <div class="admin-option-label">
-              <span>转移功能</span>
+              <span>{{ t('modules.wallet.admin.transfer_feature') }}</span>
             </div>
             <div class="admin-option-control">
               <el-switch
                 :model-value="showTransfer"
                 @update:model-value="emit('toggle-transfer')"
                 inline-prompt
-                active-text="开"
-                inactive-text="关"
+                :active-text="t('modules.wallet.admin.on')"
+                :inactive-text="t('modules.wallet.admin.off')"
                 size="small"
               />
             </div>
           </div>
           <div class="admin-option-hint">
             <el-icon :color="isDark ? '#fbbf24' : '#856404'"><Warning /></el-icon>
-            <span>开启后，会显示代币转账和勋章转移功能</span>
+            <span>{{ t('modules.wallet.admin.transfer_hint') }}</span>
           </div>
         </div>
         <div class="admin-danger-zone">
           <el-button type="danger" size="small" @click="emit('clear-addresses')">
             <el-icon><FolderDelete /></el-icon>
-            停用合约
+            {{ t('modules.wallet.admin.disable_contract') }}
           </el-button>
         </div>
       </div>
@@ -346,11 +349,11 @@ function formatDuration(seconds) {
           class="wallet-action-btn"
         >
           <el-icon><SwitchButton /></el-icon>
-          <span>切换网络</span>
+          <span>{{ t('modules.wallet.button.switch_network') }}</span>
         </el-button>
         <el-button @click="emit('disconnect')" class="wallet-action-btn wallet-action-btn--secondary">
           <el-icon><Connection /></el-icon>
-          <span>断开连接</span>
+          <span>{{ t('modules.wallet.button.disconnect') }}</span>
         </el-button>
       </div>
     </div>

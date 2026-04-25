@@ -1,6 +1,9 @@
 <script setup>
 import { Link, Delete } from '@element-plus/icons-vue'
+import { useI18n } from 'vue-i18n'
 import Card from '@/components/card.vue'
+
+const { t } = useI18n()
 
 defineProps({
   txList: Array,
@@ -55,8 +58,55 @@ const TX_TYPE_MAP = {
   'default': 'tag-default'
 }
 
+const LEGACY_LABEL_KEY_MAP = {
+  '铸造青铜勋章': 'modules.tx_history.label.mint_bronze',
+  '铸造白银勋章': 'modules.tx_history.label.mint_silver',
+  '铸造黄金勋章': 'modules.tx_history.label.mint_gold',
+  '销毁勋章': 'modules.tx_history.label.burn',
+  '转移勋章': 'modules.tx_history.label.transfer_medal',
+  '领取初始奖励': 'modules.tx_history.label.claim_initial',
+  '创作者池发放': 'modules.tx_history.label.creator_reward',
+  '互动池发放': 'modules.tx_history.label.interact_reward',
+  'CTK转账': 'modules.tx_history.label.ctk_transfer',
+  '重置勋章价格': 'modules.tx_history.label.reset_price',
+  '随机调价': 'modules.tx_history.label.adjust_price',
+  '提现帖奖': 'modules.tx_history.label.withdraw_post',
+  '提现评奖': 'modules.tx_history.label.withdraw_comment',
+  '提现初始奖': 'modules.tx_history.label.withdraw_initial',
+  '全部提现': 'modules.tx_history.label.withdraw_all',
+  '提取全部可提取CTK': 'modules.tx_history.label.withdraw_all_ctk',
+  '提取溢出CTK': 'modules.tx_history.label.withdraw_overflow'
+}
+
+function getTxLabel(tx) {
+  if (tx.label_key) return t(tx.label_key, tx.label_params || {})
+  if (!tx.label) return t('modules.tx_history.label.default')
+  const exactKey = LEGACY_LABEL_KEY_MAP[tx.label]
+  if (exactKey) return t(exactKey)
+  if (tx.label.includes('发帖')) return `${t('modules.tx_history.label.post')} ${tx.label.replace('发帖', '').trim()}`
+  if (tx.label.includes('评论帖子')) return `${t('modules.tx_history.label.comment')} ${tx.label.replace('评论帖子', '').trim()}`
+  if (tx.label.includes('销毁勋章')) return `${t('modules.tx_history.label.burn')} ${tx.label.replace('销毁勋章', '').trim()}`
+  if (tx.label.includes('转移勋章')) return `${t('modules.tx_history.label.transfer_medal')} ${tx.label.replace('转移勋章', '').trim()}`
+  if (tx.label.includes('提取') && tx.label.includes('CTK')) return tx.label
+  return tx.label
+}
+
 // 获取标签CSS类名
-function getTagClass(label) {
+function getTagClass(tx) {
+  const label = tx?.label || ''
+  const key = tx?.label_key || ''
+  if (key.includes('mint_bronze')) return 'tag-mint-bronze'
+  if (key.includes('mint_silver')) return 'tag-mint-silver'
+  if (key.includes('mint_gold')) return 'tag-mint-gold'
+  if (key.includes('burn')) return 'tag-burn'
+  if (key.includes('transfer_medal')) return 'tag-transfer'
+  if (key.includes('withdraw')) return 'tag-withdraw'
+  if (key.includes('post')) return 'tag-post'
+  if (key.includes('comment')) return 'tag-comment'
+  if (key.includes('claim_initial')) return 'tag-initial'
+  if (key.includes('creator_reward')) return 'tag-creator'
+  if (key.includes('interact_reward')) return 'tag-interact'
+  if (key.includes('ctk_transfer')) return 'tag-transfer-token'
   if (!label) return TX_TYPE_MAP['default']
   // 精确匹配
   if (TX_TYPE_MAP[label]) return TX_TYPE_MAP[label]
@@ -76,13 +126,13 @@ function getTagClass(label) {
 </script>
 
 <template>
-  <Card title="交易历史" icon="List">
+  <Card :title="t('modules.tx_history.title')" icon="List">
     <template #header>
       <div class="card-header">
-        <span>交易历史</span>
+        <span>{{ t('modules.tx_history.title') }}</span>
         <el-button size="small" text @click="emit('clear')" :disabled="!txList || txList.length === 0">
           <el-icon><Delete /></el-icon>
-          清空
+          {{ t('common.button.clear') }}
         </el-button>
       </div>
     </template>
@@ -91,7 +141,7 @@ function getTagClass(label) {
         <div class="tx-list">
           <div v-for="tx in txList" :key="tx.hash" class="tx-item">
             <div class="tx-main">
-              <el-tag size="small" effect="plain" :class="getTagClass(tx.label)">{{ tx.label }}</el-tag>
+              <el-tag size="small" effect="plain" :class="getTagClass(tx)">{{ getTxLabel(tx) }}</el-tag>
               <el-text class="mono" size="small">{{ shortenHash(tx.hash) }}</el-text>
               <el-text class="tx-time" size="small" type="info">{{ formatTime(tx.timestamp) }}</el-text>
             </div>
@@ -101,7 +151,7 @@ function getTagClass(label) {
           </div>
         </div>
       </el-scrollbar>
-      <el-empty v-else description="暂无交易记录" :image-size="40" />
+      <el-empty v-else :description="t('modules.tx_history.empty')" :image-size="40" />
     </div>
   </Card>
 </template>
