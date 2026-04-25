@@ -56,6 +56,11 @@
    - Current network name (Sepolia Testnet)
    - ETH balance
 > **Tip**: If your wallet is on a non-Sepolia network, the system will prompt you to switch to the correct network.
+
+The wallet card shows connection status, current account, ETH/CTK balances, and network information:
+
+![Wallet card](md_img/Cards/en/WalletCard.png)
+
 ### 2.3 Contract Deployment (First Use)
 If the contract has not been deployed to the current network, you can deploy it directly through the frontend interface:
 1. After connecting your wallet, find the **"Contract Deployment"** section
@@ -78,6 +83,11 @@ After connecting your wallet and confirming the contract is deployed, it is reco
 ## 3. Feature Usage Guide
 ### 3.1 Initial Reward Claim
 **Function Description**: Each new address can claim 1 CTK initial token for free, only once.
+
+The reward card brings together the initial reward, pending post/comment rewards, and withdrawal actions:
+
+![Reward card](md_img/Cards/en/RewardCard.png)
+
 **Operation Steps**:
 1. After connecting your wallet, find the **"Claim Initial Reward"** button in the "Rewards Panel"
 2. Click the button, MetaMask will pop up a transaction confirmation window
@@ -90,6 +100,11 @@ After connecting your wallet and confirming the contract is deployed, it is reco
 - Addresses that have already claimed cannot claim again, the button will be disabled
 ### 3.2 Post Reward
 **Function Description**: Earn CTK rewards through on-chain posting actions, base reward 2 CTK per post, with NFT boost available.
+
+Posting and commenting actions are handled in the content interaction card, where cooldown state is also shown:
+
+![Post and comment card](md_img/Cards/en/PostCard.png)
+
 **Operation Steps**:
 1. In the "Post Reward" section, click the **"Post"** button
 2. MetaMask will pop up a transaction confirmation window
@@ -177,6 +192,11 @@ After connecting your wallet and confirming the contract is deployed, it is reco
 - Click the address to copy the full address
 ### 3.7 NFT Medal Minting
 **Function Description**: Use CTK to mint three tiers of NFT medals, holding NFTs provides reward multiplier boosts for posting and commenting.
+
+The NFT card shows current prices, owned NFT counts, mint/burn actions, and NFT transfer-related status:
+
+![NFT card](md_img/Cards/en/NFTCard.png)
+
 #### NFT Tiers & Prices
 | Tier | Initial Price | Boost per NFT | Post Cap Boost per NFT | Comment Cap Boost per NFT |
 |------|--------------|--------------|------------------------|---------------------------|
@@ -261,6 +281,11 @@ If the CTK balance in the NFT contract is insufficient to pay the refund, the sy
 ### 3.10 Admin Functions
 **Function Description**: Management function panel only visible and operable by contract owner (deployer).
 > Regular users cannot see this panel. If you do not see the following functions, your current wallet is not the contract owner. This is permission control at the contract level (`onlyOwner` modifier).
+
+The admin card is only shown after the owner wallet is connected, and is used for reward-pool distribution, NFT price management, overflow withdrawal, and contract deactivation:
+
+![Admin card](md_img/Cards/en/AdminCard.png)
+
 #### Creator Pool Reward Distribution
 - **Function**: Distribute rewards from the creator pool (4 million CTK) to a specified address
 - **Operation**: Enter target address and distribution amount (CTK), click "Distribute"
@@ -284,6 +309,11 @@ If the CTK balance in the NFT contract is insufficient to pay the refund, the sy
 ## 4. Community Incentive Mechanism Details
 ### 4.1 Four Pool Allocation Model
 Total CTK supply **10,000,000 tokens**, allocated to four independent pools at fixed ratios:
+
+The on-chain data card shows contract addresses, pool status, and core on-chain statistics for comparison with the four-pool model below:
+
+![On-chain data card](md_img/Cards/en/ChainDataCard.png)
+
 ```
 Total Supply: 10,000,000 CTK
 ├── Creator Incentive Pool   4,000,000 CTK  (40%)  ← Post reward distribution
@@ -383,6 +413,10 @@ This means users holding NFTs not only earn more rewards per action, but can als
 ## 5. Data & Transaction Management
 ### 5.1 Transaction History
 #### View Transaction History
+The transaction history card records locally initiated transactions, processing status, block height, and block explorer entry points:
+
+![Transaction history card](md_img/Cards/en/TxHistoryCard.png)
+
 1. The **"Transaction History"** section on the page automatically records this app's local transaction history and defaults to the current account's view
 2. Each record includes:
    - Transaction Hash (`txHash`)
