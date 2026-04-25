@@ -12,6 +12,14 @@ dist/
 .DS_Store
 Thumbs.db
 
+# ------------------ Agent 本地说明 ------------------
+AGENTS.md
+CLAUDE.md
+
+# ------------------ 本地调试与视觉验证产物 ------------------
+dark-snapshot.txt
+dark-mode-*.png
+
 # ------------------ 环境与敏感文件 ------------------
 .env
 .env.local
