@@ -1,39 +1,126 @@
-import { ref, computed, shallowRef, triggerRef } from 'vue'
-
-/**
- * 统一数据存储 - 所有数据使用同一缓存 key，按类型分区存储
- * 缓存 key: creatorcommunity_${chainId}_${tokenAddr}
- * 子存储: userData / pools / txHistory / posts / settings
- */
+import { ref, shallowRef } from 'vue'
 
 function getCacheKey(chainId, tokenAddr) {
   return `creatorcommunity_${chainId}_${tokenAddr}`
 }
 
-// 内存缓存（跨组件共享）
-const store = shallowRef({})
+function normalizeAddress(address) {
+  return typeof address === 'string' ? address.trim().toLowerCase() : ''
+}
 
-// 交易历史使用独立的响应式引用，确保 UI 能自动更新
+function cloneValue(value) {
+  if (value == null) return value
+  try {
+    return JSON.parse(JSON.stringify(value))
+  } catch {
+    return value
+  }
+}
+
+function dedupeTxList(list) {
+  const seen = new Set()
+  const nextList = []
+  for (const item of Array.isArray(list) ? list : []) {
+    if (!item?.hash || seen.has(item.hash)) continue
+    seen.add(item.hash)
+    nextList.push(cloneValue(item))
+  }
+  return nextList
+}
+
+function createEmptyStore() {
+  return {
+    userDataByAccount: {},
+    txHistoryShared: [],
+    txHistoryByAccount: {},
+    pools: null,
+    posts: null,
+    settings: {}
+  }
+}
+
+function sanitizeStore(rawStore) {
+  const nextStore = createEmptyStore()
+  if (!rawStore || typeof rawStore !== 'object') {
+    return nextStore
+  }
+
+  if (rawStore.userDataByAccount && typeof rawStore.userDataByAccount === 'object') {
+    for (const [address, entry] of Object.entries(rawStore.userDataByAccount)) {
+      const normalized = normalizeAddress(address)
+      if (!normalized || !entry || typeof entry !== 'object') continue
+      nextStore.userDataByAccount[normalized] = {
+        data: cloneValue(entry.data || null),
+        cooldowns: cloneValue(entry.cooldowns || {}),
+        ts: Number(entry.ts) || Date.now()
+      }
+    }
+  }
+
+  if (Array.isArray(rawStore.txHistoryShared)) {
+    nextStore.txHistoryShared = dedupeTxList(rawStore.txHistoryShared)
+  }
+
+  if (rawStore.txHistoryByAccount && typeof rawStore.txHistoryByAccount === 'object') {
+    for (const [address, list] of Object.entries(rawStore.txHistoryByAccount)) {
+      const normalized = normalizeAddress(address)
+      if (!normalized) continue
+      nextStore.txHistoryByAccount[normalized] = dedupeTxList(list)
+    }
+  }
+
+  if (rawStore.pools) nextStore.pools = cloneValue(rawStore.pools)
+  if (rawStore.posts) nextStore.posts = cloneValue(rawStore.posts)
+  if (rawStore.settings && typeof rawStore.settings === 'object') {
+    nextStore.settings = cloneValue(rawStore.settings)
+  }
+
+  return nextStore
+}
+
+const store = shallowRef(createEmptyStore())
 const txHistoryRef = ref([])
+const sharedTxHistoryRef = ref([])
+let currentTxHistoryAccount = null
 
-function refreshTxHistory() {
-  txHistoryRef.value = [...(store.value.txHistory || [])]
+function refreshSharedTxHistory() {
+  sharedTxHistoryRef.value = [...(store.value.txHistoryShared || [])]
+}
+
+function refreshAccountTxHistory(accountAddr = currentTxHistoryAccount) {
+  currentTxHistoryAccount = normalizeAddress(accountAddr) || null
+  if (!currentTxHistoryAccount) {
+    txHistoryRef.value = []
+    return
+  }
+  txHistoryRef.value = [...(store.value.txHistoryByAccount?.[currentTxHistoryAccount] || [])]
+}
+
+function replaceStore(nextStore) {
+  store.value = sanitizeStore(nextStore)
+  refreshSharedTxHistory()
+  refreshAccountTxHistory(currentTxHistoryAccount)
+}
+
+function updateStore(mutator) {
+  const nextStore = sanitizeStore(store.value)
+  mutator(nextStore)
+  replaceStore(nextStore)
 }
 
 function loadStore(chainId, tokenAddr) {
   if (!chainId || !tokenAddr) {
-    store.value = {}
-    refreshTxHistory()
+    replaceStore(createEmptyStore())
     return
   }
+
   const key = getCacheKey(chainId, tokenAddr)
   try {
     const raw = localStorage.getItem(key)
-    store.value = raw ? JSON.parse(raw) : {}
+    replaceStore(raw ? JSON.parse(raw) : createEmptyStore())
   } catch {
-    store.value = {}
+    replaceStore(createEmptyStore())
   }
-  refreshTxHistory()
 }
 
 function saveStore(chainId, tokenAddr) {
@@ -44,123 +131,226 @@ function saveStore(chainId, tokenAddr) {
   } catch {}
 }
 
-// ==================== 用户数据 ====================
-
-function getUserDataKey(accountAddr) {
-  return `userData_${accountAddr}`
-}
-
 function loadUserData(accountAddr) {
-  if (!accountAddr) return null
-  return store.value[getUserDataKey(accountAddr)] || null
+  const normalized = normalizeAddress(accountAddr)
+  if (!normalized) return null
+  const entry = store.value.userDataByAccount?.[normalized]
+  return entry ? cloneValue(entry) : null
 }
 
-function saveUserData(accountAddr, data) {
-  if (!accountAddr || !data) return
-  store.value[getUserDataKey(accountAddr)] = { data, ts: Date.now() }
+function loadUserCooldowns(accountAddr) {
+  return cloneValue(loadUserData(accountAddr)?.cooldowns || {})
+}
+
+function getCachedAccounts() {
+  return Object.keys(store.value.userDataByAccount || {})
+}
+
+function saveUserData(accountAddr, data, options = {}) {
+  const normalized = normalizeAddress(accountAddr)
+  if (!normalized || !data) return
+
+  updateStore((nextStore) => {
+    const previous = nextStore.userDataByAccount[normalized] || {}
+    nextStore.userDataByAccount = { ...nextStore.userDataByAccount }
+    nextStore.userDataByAccount[normalized] = {
+      data: cloneValue(data),
+      cooldowns: {
+        ...(previous.cooldowns || {}),
+        ...(options.cooldowns || {})
+      },
+      ts: Date.now()
+    }
+  })
+}
+
+function saveUserCooldowns(accountAddr, cooldowns = {}) {
+  const normalized = normalizeAddress(accountAddr)
+  if (!normalized) return
+
+  updateStore((nextStore) => {
+    const previous = nextStore.userDataByAccount[normalized] || {}
+    nextStore.userDataByAccount = { ...nextStore.userDataByAccount }
+    nextStore.userDataByAccount[normalized] = {
+      data: cloneValue(previous.data || null),
+      cooldowns: {
+        ...(previous.cooldowns || {}),
+        ...cloneValue(cooldowns)
+      },
+      ts: Number(previous.ts) || Date.now()
+    }
+  })
+}
+
+function saveUserSnapshots(entries) {
+  if (!Array.isArray(entries) || entries.length === 0) return
+
+  updateStore((nextStore) => {
+    nextStore.userDataByAccount = { ...nextStore.userDataByAccount }
+    for (const entry of entries) {
+      const normalized = normalizeAddress(entry?.accountAddr || entry?.address)
+      if (!normalized || !entry?.data) continue
+      const previous = nextStore.userDataByAccount[normalized] || {}
+      nextStore.userDataByAccount[normalized] = {
+        data: cloneValue(entry.data),
+        cooldowns: {
+          ...(previous.cooldowns || {}),
+          ...(entry.cooldowns || {})
+        },
+        ts: Date.now()
+      }
+    }
+  })
 }
 
 function clearUserData(accountAddr) {
-  if (!accountAddr) return
-  delete store.value[getUserDataKey(accountAddr)]
+  const normalized = normalizeAddress(accountAddr)
+  if (!normalized) return
+
+  updateStore((nextStore) => {
+    if (!nextStore.userDataByAccount[normalized]) return
+    nextStore.userDataByAccount = { ...nextStore.userDataByAccount }
+    delete nextStore.userDataByAccount[normalized]
+  })
 }
 
-// ==================== 池子数据（全局） ====================
-
 function loadPools() {
-  return store.value.pools || null
+  return store.value.pools ? cloneValue(store.value.pools) : null
 }
 
 function savePoolsData(data) {
   if (!data) return
-  store.value.pools = { data, ts: Date.now() }
+  updateStore((nextStore) => {
+    nextStore.pools = { data: cloneValue(data), ts: Date.now() }
+  })
 }
 
 function clearPools() {
-  delete store.value.pools
+  updateStore((nextStore) => {
+    nextStore.pools = null
+  })
 }
 
-// ==================== 交易历史 ====================
-
-function loadTxHistory() {
+function loadTxHistory(accountAddr) {
+  refreshAccountTxHistory(accountAddr)
   return txHistoryRef.value
 }
 
-function saveTxHistory(list) {
-  store.value.txHistory = list
-  refreshTxHistory()
+function loadSharedTxHistory() {
+  refreshSharedTxHistory()
+  return sharedTxHistoryRef.value
 }
 
-function addTxToHistory(tx) {
-  const list = store.value.txHistory || []
-  if (list.some(t => t.hash === tx.hash)) return
-  list.unshift(tx)
-  store.value.txHistory = list
-  refreshTxHistory()
+function saveTxHistory(list, accountAddr) {
+  const normalized = normalizeAddress(accountAddr)
+  if (!normalized) return
+
+  updateStore((nextStore) => {
+    nextStore.txHistoryByAccount = { ...nextStore.txHistoryByAccount }
+    nextStore.txHistoryByAccount[normalized] = dedupeTxList(list)
+  })
 }
 
-function clearTxHistory() {
-  store.value.txHistory = []
-  refreshTxHistory()
+function saveSharedTxHistory(list) {
+  updateStore((nextStore) => {
+    nextStore.txHistoryShared = dedupeTxList(list)
+  })
 }
 
-// ==================== 帖子列表 ====================
+function addTxToHistory(tx, accountAddr) {
+  if (!tx?.hash) return
+  const normalized = normalizeAddress(accountAddr)
+
+  updateStore((nextStore) => {
+    nextStore.txHistoryShared = dedupeTxList([tx, ...(nextStore.txHistoryShared || [])])
+
+    if (normalized) {
+      nextStore.txHistoryByAccount = { ...nextStore.txHistoryByAccount }
+      nextStore.txHistoryByAccount[normalized] = dedupeTxList([
+        tx,
+        ...(nextStore.txHistoryByAccount[normalized] || [])
+      ])
+    }
+  })
+}
+
+function clearTxHistory(accountAddr) {
+  const normalized = normalizeAddress(accountAddr)
+  if (!normalized) return
+
+  updateStore((nextStore) => {
+    nextStore.txHistoryByAccount = { ...nextStore.txHistoryByAccount }
+    nextStore.txHistoryByAccount[normalized] = []
+  })
+}
+
+function clearSharedTxHistory() {
+  updateStore((nextStore) => {
+    nextStore.txHistoryShared = []
+  })
+}
 
 function loadPosts() {
-  return store.value.posts || null
+  return store.value.posts ? cloneValue(store.value.posts) : null
 }
 
 function savePosts(data) {
-  if (!data) return
-  store.value.posts = { data, ts: Date.now() }
+  if (!Array.isArray(data)) return
+  updateStore((nextStore) => {
+    nextStore.posts = { data: cloneValue(data), ts: Date.now() }
+  })
 }
 
-// ==================== UI设置 ====================
-
 function loadSettings() {
-  return store.value.settings || {}
+  return cloneValue(store.value.settings || {})
 }
 
 function saveSetting(key, value) {
   if (!key) return
-  store.value.settings = store.value.settings || {}
-  store.value.settings[key] = value
+  updateStore((nextStore) => {
+    nextStore.settings = {
+      ...(nextStore.settings || {}),
+      [key]: value
+    }
+  })
 }
-
-// ==================== 整体操作 ====================
 
 function clearAllWithChainToken(chainId, tokenAddr) {
   const key = getCacheKey(chainId, tokenAddr)
-  try { localStorage.removeItem(key) } catch {}
-  store.value = {}
-  refreshTxHistory()
+  try {
+    localStorage.removeItem(key)
+  } catch {}
+  replaceStore(createEmptyStore())
 }
 
 export function useDataStore() {
   return {
     store,
-    // 初始化
+    txHistoryRef,
+    sharedTxHistoryRef,
     loadStore,
     saveStore,
-    // 用户数据
     loadUserData,
+    loadUserCooldowns,
+    getCachedAccounts,
     saveUserData,
+    saveUserCooldowns,
+    saveUserSnapshots,
     clearUserData,
-    // 池子数据
     loadPools,
     savePoolsData,
-    // 交易历史
+    clearPools,
     loadTxHistory,
+    loadSharedTxHistory,
     saveTxHistory,
+    saveSharedTxHistory,
     addTxToHistory,
     clearTxHistory,
-    // 帖子
+    clearSharedTxHistory,
     loadPosts,
     savePosts,
-    // 设置
     loadSettings,
     saveSetting,
-    // 整体
     clearAllWithChainToken
   }
 }

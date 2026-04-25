@@ -1,16 +1,31 @@
 <script setup>
-import { Link, Delete } from '@element-plus/icons-vue'
+import { computed } from 'vue'
+import { Link, Loading } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import Card from '@/components/card.vue'
 
 const { t } = useI18n()
 
-defineProps({
+const props = defineProps({
   txList: Array,
+  scope: {
+    type: String,
+    default: 'account'
+  },
+  loading: Boolean,
   blockExplorer: String
 })
 
-const emit = defineEmits(['clear'])
+const emit = defineEmits(['change-scope'])
+
+const historyScopeOptions = computed(() => [
+  { label: t('modules.tx_history.scope.account'), value: 'account' },
+  { label: t('modules.tx_history.scope.shared'), value: 'shared' }
+])
+
+const activeScopeIndex = computed(() =>
+  historyScopeOptions.value.findIndex((option) => option.value === props.scope) === 1 ? 1 : 0
+)
 
 function shortenHash(hash) {
   if (!hash) return ''
@@ -130,14 +145,33 @@ function getTagClass(tx) {
     <template #header>
       <div class="card-header">
         <span>{{ t('modules.tx_history.title') }}</span>
-        <el-button size="small" text @click="emit('clear')" :disabled="!txList || txList.length === 0">
-          <el-icon><Delete /></el-icon>
-          {{ t('common.button.clear') }}
-        </el-button>
+        <div
+          class="history-scope"
+          role="tablist"
+          :style="{ '--active-index': activeScopeIndex }"
+        >
+          <span class="history-scope__thumb" aria-hidden="true"></span>
+          <button
+            v-for="option in historyScopeOptions"
+            :key="option.value"
+            class="history-scope__item"
+            :class="{ 'is-active': (scope || 'account') === option.value }"
+            type="button"
+            role="tab"
+            :aria-selected="(scope || 'account') === option.value"
+            @click="emit('change-scope', option.value)"
+          >
+            {{ option.label }}
+          </button>
+        </div>
       </div>
     </template>
     <div class="tx-body">
-      <el-scrollbar v-if="txList && txList.length > 0" class="tx-scrollbar">
+      <div v-if="loading" class="tx-reconnecting-overlay">
+        <el-icon class="tx-reconnect-spinner" :size="28"><Loading /></el-icon>
+        <span class="tx-reconnect-text">{{ t('modules.tx_history.loading_all') }}</span>
+      </div>
+      <el-scrollbar v-else-if="txList && txList.length > 0" class="tx-scrollbar">
         <div class="tx-list">
           <div v-for="tx in txList" :key="tx.hash" class="tx-item">
             <div class="tx-main">
@@ -161,7 +195,84 @@ function getTagClass(tx) {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   width: 100%;
+  min-width: 0;
+}
+
+.history-scope {
+  --active-index: 0;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(74px, 1fr));
+  position: relative;
+  isolation: isolate;
+  max-width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 2px;
+  background: var(--color-background-mute);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  overflow: hidden;
+}
+
+.history-scope:hover {
+  border-color: var(--color-border-hover);
+}
+
+.history-scope__thumb {
+  position: absolute;
+  z-index: 0;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc((100% - 4px) / 2);
+  border-radius: 6px;
+  background: var(--gradient-primary);
+  box-shadow: var(--shadow-primary);
+  transform: translateX(calc(var(--active-index) * 100%));
+  transition: transform 0.26s cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.history-scope__item {
+  position: relative;
+  z-index: 1;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 26px;
+  white-space: nowrap;
+  transition: color 0.18s ease, background-color 0.18s ease;
+}
+
+.history-scope__item:focus-visible {
+  outline: 2px solid var(--color-primary-hover);
+  outline-offset: -2px;
+}
+
+.history-scope__item:hover:not(.is-active) {
+  color: var(--color-primary);
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.history-scope__item.is-active {
+  color: var(--color-text-inverse);
+}
+
+html.dark .history-scope {
+  background: var(--color-background-elevated);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html.dark .history-scope__item.is-active {
+  color: #0f172a;
 }
 
 .tx-body {
@@ -170,6 +281,33 @@ function getTagClass(tx) {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
+}
+
+.tx-reconnecting-overlay {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 180px;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+}
+
+.tx-reconnect-spinner {
+  color: var(--color-primary);
+  animation: tx-spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+.tx-reconnect-text {
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+@keyframes tx-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .tx-scrollbar {
@@ -247,6 +385,19 @@ function getTagClass(tx) {
 }
 
 @media (max-width: 1380px) {
+  .card-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .history-scope {
+    width: 100%;
+  }
+
+  .history-scope__item {
+    min-width: 0;
+  }
+
   .tx-item {
     align-items: flex-start;
   }

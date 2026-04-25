@@ -1,6 +1,7 @@
 {
   "title": "当前账户相关信息",
   "loading": "正在重新加载账户数据...",
+  "loading_all": "正在同步刷新缓存数据...",
   "empty": "暂无账户数据，请先连接钱包并刷新",
   "progress": {
     "loading_store": "加载存储数据...",
@@ -14,8 +15,8 @@
     "waiting": "等待 {time}"
   },
   "summary": {
-    "medal_count": "CTK: {ctk} | 勋章: {count} 枚",
-    "pending": "| 待提现: {amount} CTK",
+    "medal_count": "CTK: {ctk}，勋章: {count} 枚",
+    "pending": "待提现: {amount} CTK",
     "query_failed": "数据查询失败: {message}"
   },
   "category": {

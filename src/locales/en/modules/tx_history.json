@@ -1,6 +1,11 @@
 {
   "title": "Transaction History",
   "empty": "No transaction records",
+  "loading_all": "Refreshing transaction history...",
+  "scope": {
+    "account": "My Transactions",
+    "shared": "All Transactions"
+  },
   "error": {
     "rejected": "You canceled the transaction",
     "insufficient_funds": "Insufficient ETH balance to pay the gas fee"

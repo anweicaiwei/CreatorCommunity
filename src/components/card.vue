@@ -42,26 +42,28 @@ defineSlots();
 <template>
   <el-card class="light-card" shadow="hover">
     <template #header>
-      <div class="card-header">
-        <div class="card-header-left">
-          <el-icon v-if="icon && iconMap[icon]" class="card-icon">
-            <component :is="iconMap[icon]" />
-          </el-icon>
-          <span class="card-title">{{ title }}</span>
+      <slot name="header">
+        <div class="card-header">
+          <div class="card-header-left">
+            <el-icon v-if="icon && iconMap[icon]" class="card-icon">
+              <component :is="iconMap[icon]" />
+            </el-icon>
+            <span class="card-title">{{ title }}</span>
+          </div>
+          <div class="card-header-right">
+            <el-button
+              v-if="refreshBtn"
+              type="primary"
+              size="small"
+              :loading="refreshLoading"
+              @click="emit('refresh')"
+              class="card-refresh-btn"
+            >
+              <span>{{ t('common.button.refresh') }}</span>
+            </el-button>
+          </div>
         </div>
-        <div class="card-header-right">
-          <el-button
-            v-if="refreshBtn"
-            type="primary"
-            size="small"
-            :loading="refreshLoading"
-            @click="emit('refresh')"
-            class="card-refresh-btn"
-          >
-            <span>{{ t('common.button.refresh') }}</span>
-          </el-button>
-        </div>
-      </div>
+      </slot>
     </template>
     <div class="card-body">
       <slot />

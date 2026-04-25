@@ -28,7 +28,10 @@ const isOwner = inject('isOwner')
 const postLoading = inject('postLoading')
 const posts = inject('posts')
 const poolData = inject('poolData')
-const txList = inject('txList')
+const txHistoryList = inject('txHistoryList')
+const txHistoryScope = inject('txHistoryScope')
+const setTxHistoryScope = inject('setTxHistoryScope')
+const globalRefreshLoading = inject('globalRefreshLoading')
 const dataLoadingProgress = inject('dataLoadingProgress')
 const blockExplorer = inject('blockExplorer')
 const showTransfer = inject('showTransfer')
@@ -107,61 +110,74 @@ function switchLocale(value) {
         </template>
 
         <template v-if="isDataLoaded && canInteract">
-          <div class="user-grid">
-            <RewardSection
-              :can-interact="canInteract"
-              :write-loading="writeLoading"
-              :read-data="readData"
-              :show-transfer="showTransfer"
-              @claim-initial="emit('claim-initial')"
-              @withdraw-post="emit('withdraw-post')"
-              @withdraw-comment="emit('withdraw-comment')"
-              @withdraw-initial="emit('withdraw-initial')"
-              @withdraw-all="emit('withdraw-all')"
-              @ctk-transfer="emit('ctk-transfer')"
-            />
+          <div class="interactive-stack" :class="{ 'is-refreshing': globalRefreshLoading }">
+            <div class="interactive-stack__content">
+              <div class="user-grid">
+                <RewardSection
+                  :can-interact="canInteract"
+                  :write-loading="writeLoading"
+                  :read-data="readData"
+                  :show-transfer="showTransfer"
+                  @claim-initial="emit('claim-initial')"
+                  @withdraw-post="emit('withdraw-post')"
+                  @withdraw-comment="emit('withdraw-comment')"
+                  @withdraw-initial="emit('withdraw-initial')"
+                  @withdraw-all="emit('withdraw-all')"
+                  @ctk-transfer="emit('ctk-transfer')"
+                />
 
-            <PostSection
-              :can-interact="canInteract"
-              :write-loading="writeLoading"
-              :post-loading="postLoading"
-              :post-list="posts"
-              :read-data="readData"
-              @reward-post="emit('reward-post')"
-              @reward-comment="emit('reward-comment')"
-              @refresh-posts="emit('refresh-posts')"
-            />
-          </div>
+                <PostSection
+                  :can-interact="canInteract"
+                  :write-loading="writeLoading"
+                  :post-loading="postLoading"
+                  :post-list="posts"
+                  :read-data="readData"
+                  @reward-post="emit('reward-post')"
+                  @reward-comment="emit('reward-comment')"
+                  @refresh-posts="emit('refresh-posts')"
+                />
+              </div>
 
-          <NFTSection
-            :can-interact="canInteract"
-            :write-loading="writeLoading"
-            :read-data="readData"
-            :show-transfer="showTransfer"
-            @mint-bronze="emit('mint-bronze')"
-            @mint-silver="emit('mint-silver')"
-            @mint-gold="emit('mint-gold')"
-            @burn-nft="emit('burn-nft')"
-            @nft-transfer="emit('nft-transfer')"
-          />
+              <NFTSection
+                :can-interact="canInteract"
+                :write-loading="writeLoading"
+                :read-data="readData"
+                :show-transfer="showTransfer"
+                @mint-bronze="emit('mint-bronze')"
+                @mint-silver="emit('mint-silver')"
+                @mint-gold="emit('mint-gold')"
+                @burn-nft="emit('burn-nft')"
+                @nft-transfer="emit('nft-transfer')"
+              />
 
-          <div class="admin-wrapper">
-            <AdminSection
-              v-if="isOwner && canInteract"
-              :can-interact="canInteract"
-              :write-loading="writeLoading"
-              :token-contract-read="tokenContractRead"
-              :nft-contract-read="nftContractRead"
-              :pool-data="poolData"
-              @send-creator="emit('send-creator')"
-              @send-interact="emit('send-interact')"
-              @reset-price="emit('reset-price')"
-              @adjust-price="emit('adjust-price')"
-              @withdraw-ctk="emit('withdraw-ctk')"
-              @withdraw-all-ctk="emit('withdraw-all-ctk')"
-              @withdraw-overflow="emit('withdraw-overflow')"
-              @refresh-pools="emit('refresh-pools')"
-            />
+              <div class="admin-wrapper">
+                <AdminSection
+                  v-if="isOwner && canInteract"
+                  :can-interact="canInteract"
+                  :write-loading="writeLoading"
+                  :token-contract-read="tokenContractRead"
+                  :nft-contract-read="nftContractRead"
+                  :pool-data="poolData"
+                  @send-creator="emit('send-creator')"
+                  @send-interact="emit('send-interact')"
+                  @reset-price="emit('reset-price')"
+                  @adjust-price="emit('adjust-price')"
+                  @withdraw-ctk="emit('withdraw-ctk')"
+                  @withdraw-all-ctk="emit('withdraw-all-ctk')"
+                  @withdraw-overflow="emit('withdraw-overflow')"
+                  @refresh-pools="emit('refresh-pools')"
+                />
+              </div>
+            </div>
+
+            <transition name="refresh-fade">
+              <div v-if="globalRefreshLoading" class="interactive-stack__overlay">
+                <div class="interactive-stack__loader">
+                  <el-icon class="interactive-stack__loader-icon" :size="26"><Loading /></el-icon>
+                  <span>{{ t('modules.chain_data.loading_all') }}</span>
+                </div>
+              </div>
+            </transition>
           </div>
         </template>
       </div>
@@ -179,9 +195,11 @@ function switchLocale(value) {
         </div>
         <div class="sidebar-panel sidebar-panel--history">
           <TxHistorySection
-            :tx-list="txList"
+            :tx-list="txHistoryList"
+            :scope="txHistoryScope"
+            :loading="globalRefreshLoading"
             :block-explorer="blockExplorer"
-            @clear="emit('clear-tx')"
+            @change-scope="setTxHistoryScope"
           />
         </div>
       </aside>
@@ -294,6 +312,82 @@ function switchLocale(value) {
   height: 100%;
 }
 
+.interactive-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.interactive-stack__content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: opacity 0.24s ease, transform 0.24s ease, filter 0.24s ease;
+}
+
+.interactive-stack.is-refreshing .interactive-stack__content {
+  opacity: 0.4;
+  transform: translateY(2px) scale(0.995);
+  filter: saturate(0.9);
+  pointer-events: none;
+}
+
+.interactive-stack__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 16px;
+}
+
+.interactive-stack__overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 252, 0.18), rgba(241, 245, 249, 0.42)),
+    rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(8px);
+}
+
+.interactive-stack__loader {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-md);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.interactive-stack__loader-icon {
+  animation: rotate 0.9s linear infinite;
+}
+
+.refresh-fade-enter-active,
+.refresh-fade-leave-active {
+  transition: opacity 0.22s ease;
+}
+
+.refresh-fade-enter-from,
+.refresh-fade-leave-to {
+  opacity: 0;
+}
+
 :deep(.el-descriptions__label) {
   color: var(--color-primary);
   font-weight: 500;
@@ -312,6 +406,23 @@ html.dark :deep(.el-table) {
   --el-table-border-color: rgba(167, 139, 250, 0.3);
   --el-table-header-bg-color: rgba(30, 41, 59, 0.8);
 }
+
+html.dark .interactive-stack__overlay {
+}
+
+html.dark .interactive-stack__overlay::before {
+  background:
+    linear-gradient(180deg, rgba(30, 41, 59, 0.18), rgba(15, 23, 42, 0.46)),
+    rgba(15, 23, 42, 0.3);
+}
+
+html.dark .interactive-stack__loader {
+  background: rgba(30, 41, 59, 0.92);
+  border-color: rgba(167, 139, 250, 0.22);
+  color: var(--color-primary-hover);
+  box-shadow: var(--shadow-lg);
+}
+
 
 @media (max-width: 1024px) {
   .user-grid {

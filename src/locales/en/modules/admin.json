@@ -29,7 +29,8 @@
     "withdraw": "Withdraw",
     "withdraw_all": "Withdraw All",
     "withdraw_overflow": "Withdraw Overflow",
-    "note": "Withdrawn CTK tokens will be allocated to the Creator Pool and Interaction Pool at a <strong>7:3</strong> ratio"
+    "note_prefix": "Withdrawn CTK tokens will be allocated to the Creator Pool and Interaction Pool at a ",
+    "note_suffix": " ratio"
   },
   "message": {
     "fill_address_amount": "Please enter an address and amount",

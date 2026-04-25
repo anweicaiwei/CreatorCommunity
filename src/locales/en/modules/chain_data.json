@@ -1,6 +1,7 @@
 {
   "title": "Current Account Information",
   "loading": "Reloading account data...",
+  "loading_all": "Refreshing cached data...",
   "empty": "No account data. Please connect your wallet and refresh first",
   "progress": {
     "loading_store": "Loading stored data...",
@@ -14,8 +15,8 @@
     "waiting": "Wait {time}"
   },
   "summary": {
-    "medal_count": "CTK: {ctk} | Medals: {count}",
-    "pending": "| Pending withdrawal: {amount} CTK",
+    "medal_count": "CTK: {ctk}, Medals: {count}",
+    "pending": "Pending withdrawal: {amount} CTK",
     "query_failed": "Data query failed: {message}"
   },
   "category": {

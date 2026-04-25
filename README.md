@@ -1,5 +1,17 @@
 # CreatorCommunity
 **简体中文** | [English](./README.en.md)
+
+## 目录
+- [项目概述](#项目概述)
+- [功能特性](#功能特性)
+- [技术栈](#技术栈)
+- [智能合约](#智能合约)
+- [快速开始](#快速开始)
+- [项目结构](#项目结构)
+- [架构设计](#架构设计)
+- [Web3 注意事项](#web3-注意事项)
+- [贡献](#贡献)
+- [许可](#许可)
 ## 项目概述
 **CreatorCommunity** 是一个基于以太坊的去中心化创作者社区平台，通过 **CTK Token** 与 **CMN NFT 勋章** 的双代币经济模型，构建"创作 → 获取奖励 → 升级勋章 → 更高增益 → 持续创作"的激励机制闭环。
 ### 代币与 NFT 流转逻辑
@@ -48,8 +60,8 @@
 - **NFT 转移** — 将持有的 NFT 转移给其他地址
 - **管理员控制** — 创作者池 / 互动池奖励发放、批量发放、NFT 价格管理、溢出 CTK 提取
 - **合约部署** — 从前端界面直接部署 CreatorToken 和 CreatorNFT 合约
-- **交易历史** — 本地缓存交易记录，并提供区块浏览器跳转链接
-- **数据缓存** — 按链 ID + 合约地址 + 账户地址智能缓存链上只读数据、帖子列表和交易历史
+- **交易历史** — 采用“账户历史 + 共享历史”双轨本地记录，并提供区块浏览器跳转链接
+- **数据缓存** — 以统一 `chainId + tokenAddress` store 缓存链上只读数据、帖子列表和交易历史，store 内再按账户分区
 - **内置用户手册** — 访问 `/CreatorCommunity/manual` 查看完整的使用指南
 ## 技术栈
 | 类别 | 技术 |
@@ -269,7 +281,6 @@ creatorcommunity/
 │   │   ├── useDeploy.js         # 合约部署逻辑
 │   │   ├── useContractAddress.js# 合约地址管理（按链存储）
 │   │   ├── usePostList.js       # 帖子列表获取与缓存
-│   │   ├── useTxHistory.js      # 交易历史持久化
 │   │   └── useDataStore.js      # 统一数据缓存与状态管理
 │   ├── contracts/               # 合约 ABI 与字节码
 │   │   ├── CreatorToken_ABI.json
@@ -309,9 +320,9 @@ creatorcommunity/
                 ▼
         以太坊 Sepolia 网络
 ```
-- **只读调用**：通过 `Provider` 直接调用，无需 Gas 和签名，结果由 `useDataStore` 缓存
+- **只读调用**：通过 `Provider` 直接调用，无需 Gas 和签名，结果由 `useDataStore` 写入统一根 store 下的账户快照
 - **写入交易**：通过 `Signer` 发起，完整生命周期由 `useTransaction` 管理（预估 Gas → 等待确认 → 解析回执 → 区块浏览器链接）
-- **数据缓存**：localStorage 按 `chainId + tokenAddress + accountAddress` 作为缓存键，避免跨链数据混淆
+- **数据缓存**：localStorage 以 `chainId + tokenAddress` 作为统一根键，账户数据、冷却状态和交易历史在 store 内按账户分区；发生转账、评论奖励等共享交易时，会联动刷新直接受影响账户的缓存
 ## Web3 注意事项
 - **需要钱包**：必须安装并连接 Web3 钱包（如 MetaMask）才能使用链上功能
 - **网络要求**：应用目标网络为 **以太坊 Sepolia 测试网**（Chain ID: `11155111`）。如果钱包处于其他网络，应用会提示切换

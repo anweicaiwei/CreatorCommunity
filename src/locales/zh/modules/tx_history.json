@@ -1,6 +1,11 @@
 {
   "title": "交易历史",
   "empty": "暂无交易记录",
+  "loading_all": "正在刷新交易历史...",
+  "scope": {
+    "account": "我的交易",
+    "shared": "全部交易"
+  },
   "error": {
     "rejected": "您取消了交易",
     "insufficient_funds": "ETH 余额不足以支付燃气费"

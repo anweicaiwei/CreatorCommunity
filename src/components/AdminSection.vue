@@ -198,7 +198,11 @@ function refreshPools() {
         </div>
         <div class="withdraw-note">
           <el-icon><Warning /></el-icon>
-          <span v-html="t('modules.admin.withdraw.note')" />
+          <span>
+            {{ t('modules.admin.withdraw.note_prefix') }}
+            <strong>7:3</strong>
+            {{ t('modules.admin.withdraw.note_suffix') }}
+          </span>
         </div>
       </div>
     </div>

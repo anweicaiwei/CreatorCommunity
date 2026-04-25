@@ -1,5 +1,16 @@
 # CreatorCommunity
 **English** | [简体中文](./README.md)
+
+## Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Smart Contracts](#smart-contracts)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Architecture](#architecture)
+- [Web3 Notes](#web3-notes)
+- [License](#license)
 ### Overview
 **CreatorCommunity** is a decentralized creator community platform built on Ethereum, leveraging a dual-token economy of **CTK Token** and **CMN NFT Medals** to create a self-reinforcing incentive loop: "create content → earn rewards → upgrade medals → higher boost → keep creating".
 #### Token & NFT Circulation
@@ -49,8 +60,8 @@
 - **NFT Transfer** — Transfer owned NFTs to other addresses
 - **Admin Controls** — Pool distribution (creator pool / interaction pool), batch rewards, NFT price management, and overflow CTK withdrawal
 - **Contract Deployment** — Deploy CreatorToken and CreatorNFT contracts directly from the UI
-- **Transaction History** — Local caching of transaction records with block explorer links
-- **Data Caching** — Smart caching for on-chain read data, post lists, and history (keyed by chainId + contract address + account)
+- **Transaction History** — Dual-track local history with account-scoped view by default and shared history retained for full local activity review
+- **Data Caching** — Smart caching for on-chain read data, post lists, and history under a unified `chainId + tokenAddress` store, partitioned by account inside the store
 - **Built-in User Manual** — Access `/CreatorCommunity/manual` for complete usage guide
 ### Tech Stack
 | Category | Technology |
@@ -270,7 +281,6 @@ creatorcommunity/
 │   │   ├── useDeploy.js         # Contract deployment logic
 │   │   ├── useContractAddress.js# Contract address management (per-chain)
 │   │   ├── usePostList.js       # Post list fetching & caching
-│   │   ├── useTxHistory.js      # Transaction history persistence
 │   │   └── useDataStore.js      # Unified data cache & state management
 │   ├── contracts/               # Contract ABI & bytecode
 │   │   ├── CreatorToken_ABI.json
@@ -310,9 +320,9 @@ User Browser (MetaMask)
                 ▼
         Ethereum Sepolia Network
 ```
-- **Read-only calls**: Directly through `Provider`, no gas, no signature, results cached by `useDataStore`
+- **Read-only calls**: Directly through `Provider`, no gas, no signature, results cached by `useDataStore` in account snapshots under the unified chain+token store
 - **Write transactions**: Through `Signer`, full lifecycle managed by `useTransaction` (estimate gas → pending → confirmed → block explorer link)
-- **Data caching**: localStorage keyed by `chainId + tokenAddress + accountAddress` to avoid stale cross-chain data
+- **Data caching**: localStorage is keyed by `chainId + tokenAddress`; account data, cooldowns, and transaction history are partitioned inside that store and directly affected cached accounts are refreshed together after shared transactions
 ### Web3 Notes
 - **Wallet Required**: A Web3 wallet (e.g., MetaMask) must be installed and connected to interact with on-chain features
 - **Network**: The app targets **Ethereum Sepolia Testnet** (Chain ID: `11155111`). If your wallet is on a different network, the app will prompt you to switch

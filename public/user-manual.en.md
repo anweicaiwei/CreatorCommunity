@@ -383,13 +383,14 @@ This means users holding NFTs not only earn more rewards per action, but can als
 ## 5. Data & Transaction Management
 ### 5.1 Transaction History
 #### View Transaction History
-1. The **"Transaction History"** section on the page automatically records all your on-chain operations in this application
+1. The **"Transaction History"** section on the page automatically records this app's local transaction history and defaults to the current account's view
 2. Each record includes:
    - Transaction Hash (`txHash`)
    - Transaction Status (Success / Failed / Processing)
    - Operation Time
    - Associated Block Height
-3. Clicking the transaction hash will redirect to the block explorer detail page to view complete on-chain transaction information
+3. The app keeps both shared history and account history: the current page reads account history by default while shared history still preserves the full local activity log
+4. Clicking the transaction hash will redirect to the block explorer detail page to view complete on-chain transaction information
 #### Block Explorer Redirection
 - After transaction confirmation, the page provides a clickable transaction hash link
 - Clicking will open the corresponding transaction detail page on Sepolia Etherscan in a new tab
@@ -398,22 +399,23 @@ This means users holding NFTs not only earn more rewards per action, but can als
 #### Caching Strategy
 The application uses an intelligent caching mechanism to optimize performance and reduce RPC requests:
 ```
-Cache Key = chainId + tokenContractAddress + walletAddress
+Root Cache Key = chainId + tokenContractAddress
 ```
-- **On-chain read-only data**: Balance, cooldown time, NFT information, etc. are cached via `useDataStore`
-- **Post list**: Cached independently by chain + contract + account via `usePostList`
-- **Transaction history**: Persisted to localStorage via `useTxHistory`
+- **Unified cache structure**: `useDataStore` keeps `userDataByAccount`, `txHistoryByAccount`, `txHistoryShared`, `pools`, `posts`, and `settings` inside one root store
+- **Account snapshots**: Each cached account stores its own balances, pending rewards, NFT data, plus `cooldowns.post` / `cooldowns.comment`
+- **Transaction history**: The UI defaults to account history while shared history is still retained for the full local activity log
+- **Legacy compatibility**: Old standalone cooldown keys may still be read as a migration fallback, but cooldown state now primarily lives inside the account snapshot
 #### Cache Refresh Strategy
 | Data Type | Refresh Method |
 |-----------|----------------|
-| High frequency data (balance, cooldown, etc.) | Automatically refreshed after transaction completion |
+| High frequency account data (balance, cooldown, NFT data, etc.) | Automatically refresh the current account after a transaction and also refresh directly affected cached accounts |
 | Low frequency data (pool statistics, etc.) | Scheduled refresh |
 | Post list | Refreshed after posting operation |
-| Transaction history | Appended on each new transaction |
+| Transaction history | Appended to both account history and shared history on each new transaction |
 #### Cross-chain Isolation
-Cached data uses `chainId + tokenAddress + accountAddress` as the unique key, ensuring:
+Cached data uses `chainId + tokenAddress` as the root boundary and partitions accounts inside the store, ensuring:
 - No incorrect data is loaded after switching networks
-- Data is automatically isolated after switching wallets
+- Switching wallets loads the matching account snapshot without overwriting other cached accounts
 - Data from different contract addresses on the same network do not interfere with each other
 ---
 ## 6. FAQ

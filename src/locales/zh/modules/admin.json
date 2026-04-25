@@ -29,7 +29,8 @@
     "withdraw": "提取",
     "withdraw_all": "提取全部",
     "withdraw_overflow": "提取溢出",
-    "note": "提取的 CTK 代币将按 <strong>7:3</strong> 的比例分配至创作者池和互动池"
+    "note_prefix": "提取的 CTK 代币将按 ",
+    "note_suffix": " 的比例分配至创作者池和互动池"
   },
   "message": {
     "fill_address_amount": "请填写地址和金额",
