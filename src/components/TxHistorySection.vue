@@ -173,10 +173,10 @@ function getTagClass(tx) {
 }
 
 .tx-scrollbar {
-  height: 0;
+  height: auto;
   flex: 1 1 auto;
   overflow: hidden;
-  min-height: 420px;
+  min-height: 0;
 }
 
 .tx-scrollbar :deep(.el-scrollbar__view) {
@@ -184,7 +184,6 @@ function getTagClass(tx) {
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  height: 100%;
   padding: 4px;
   box-sizing: border-box;
 }
@@ -207,6 +206,7 @@ function getTagClass(tx) {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   padding: 8px 10px;
   background: var(--color-background-elevated);
   border: 1px solid var(--color-border);
@@ -227,8 +227,9 @@ function getTagClass(tx) {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 1;
+  flex: 1 1 auto;
   min-width: 0;
+  overflow: hidden;
 }
 
 .mono {
@@ -243,6 +244,21 @@ function getTagClass(tx) {
 .tx-time {
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+@media (max-width: 1380px) {
+  .tx-item {
+    align-items: flex-start;
+  }
+
+  .tx-main {
+    flex-wrap: wrap;
+  }
+
+  .tx-time {
+    width: 100%;
+    padding-left: 2px;
+  }
 }
 
 @media (min-width: 1100px) and (max-width: 1200px) {

@@ -1,324 +1,341 @@
 # CreatorCommunity
+
 **简体中文** | [English](./README.en.md)
+
+开源仓库：[anweicaiwei/CreatorCommunity](https://github.com/anweicaiwei/CreatorCommunity)
+
 ## 项目概述
-**CreatorCommunity** 是一个基于以太坊的去中心化创作者社区平台，通过 **CTK Token** 与 **CMN NFT 勋章** 的双代币经济模型，构建"创作 → 获取奖励 → 升级勋章 → 更高增益 → 持续创作"的激励机制闭环。
-### 代币与 NFT 流转逻辑
+
+`CreatorCommunity` 是一个基于 Vue 3、Element Plus 和 ethers.js v6 的前端 Web3 dApp，用来演示“创作激励 + NFT 徽章增益”的社区机制。应用围绕两份合约工作：
+
+- `CreatorToken`：负责 CTK 奖励记录、奖励提现、帖子/评论激励、管理员奖池发放
+- `CreatorNFT`：负责 Bronze / Silver / Gold 三档 NFT 的铸造、销毁退款、价格调整和 NFT 合约余额管理
+
+当前前端以“可操作、可观察、可恢复”为目标，重点覆盖钱包连接、合约部署、链上数据读取、本地缓存、奖励流程、NFT 流转和管理员操作。
+
+## 系统功能结构
+
+### 页面结构
+
+- `/CreatorCommunity/`
+  - 主页，实际由 `App.vue` 统一编排
+  - `HomeView.vue` 只负责展示，并通过 `inject()` 接收状态和事件
+- `/CreatorCommunity/manual`
+  - 根据当前语言重定向到 `/CreatorCommunity/manual-zh` 或 `/CreatorCommunity/manual-en`
+- `/CreatorCommunity/manual-zh`
+  - 加载 `public/user-manual.zh.md`
+- `/CreatorCommunity/manual-en`
+  - 加载 `public/user-manual.en.md`
+
+### 主页模块结构
+
+主页实际挂载的功能块如下，顺序与用户看到的界面一致：
+
+1. 钱包与合约状态
+   - 连接 / 断开 MetaMask
+   - 校验目标网络
+   - 显示钱包地址、连接时长、区块浏览器地址
+   - 触发部署、显示已保存的合约地址
+   - 管理员可开启或关闭转账入口
+2. 奖励模块
+   - 领取初始奖励
+   - 提现发帖 / 评论 / 初始 / 全部待领取奖励
+   - 在管理员开启转账功能时执行 CTK 转账
+3. 帖子互动模块
+   - 发帖奖励
+   - 帖子列表刷新
+   - 按帖子执行评论奖励
+4. NFT 模块
+   - 铸造 Bronze / Silver / Gold NFT
+   - 销毁 NFT 并按规则退款
+   - 在管理员开启转账功能时执行 NFT 转移
+5. 管理员模块
+   - 查询奖池与 NFT 合约余额
+   - 从创作者池 / 互动池发奖
+   - 重置价格 / 随机调价
+   - 提取 NFT 合约中的可提取 CTK、全部可提取 CTK、溢出 CTK
+6. 侧边栏
+   - 链上数据总览
+   - 交易历史
+
+### 业务主线
+
+```text
+钱包连接与网络校验
+-> 合约部署或恢复本地地址
+-> 加载链上数据与本地缓存
+-> 记录奖励（发帖 / 评论 / 初始奖励）
+-> 提现到 CTK 余额
+-> 用 CTK 铸造 NFT 获取奖励增益
+-> 继续创作或执行管理员资金操作
 ```
-               发帖 / 评论
-          ┌─────────────────────┐
-          │   获取 CTK 奖励      │
-          │  (基础奖励 + NFT增益)│
-          └─────────┬───────────┘
-                    │ 累积 CTK
-                    ▼
-          ┌─────────────────────┐
-          │   用 CTK 铸造 NFT    │
-          │  青铜(1000)/白银    │
-          │  (5000)/黄金(10000) │
-          └─────────┬───────────┘
-                    │ 持有 NFT
-                    ▼
-          ┌─────────────────────┐
-          │   NFT 增益生效       │
-          │  发帖/评论奖励提升   │
-          │  (最多可叠加至50%)   │
-          └─────────┬───────────┘
-                    │ 更多 CTK
-                    ▼
-          ┌─────────────────────┐
-          │   循环：铸造更多 NFT │
-          │   或销毁 NFT 变现    │
-          └─────────────────────┘
-```
-### 社区激励机制
-1. **创作即挖矿**：用户发帖可获得 CTK 奖励（基础 2 CTK/次，5 分钟冷却），评论可同时让评论者和帖子作者获得 CTK（基础各 0.1 CTK/次，30 秒冷却）。通过链上记录行为，将内容创作转化为可量化的代币收益。
-2. **勋章增益（NFT 越多，收益越大）**：用户持有的 NFT 勋章数量直接影响发帖和评论的奖励额度。每枚青铜 NFT 提供 0.5% 增益、白银 2%、黄金 12%，增益可累加（上限 50%）。例如：持有 5 枚黄金 NFT 的用户，发帖奖励可提升 50%（2 CTK → 3 CTK）。这鼓励用户持续投入、升级自己的勋章组合。
-3. **代币 ↔ 勋章双向兑换**：用户累积的 CTK 可用于铸造三种等级的 NFT 勋章，形成代币消耗通路；同时 NFT 可销毁并返还 80% 铸造时价格的 CTK，形成回流机制。代币和 NFT 之间形成完整的流通闭环。
-4. **NFT 价格波动机制**：管理员可通过 `randomlyAdjustNFTPrice` 函数随机调整 NFT 价格（±10%，受 50%-150% 初始价格区间约束）。这意味着用户可以在价格低位时铸造 NFT，待价格上涨后销毁，返还的 CTK 可能 **超过** 当初铸造时的成本，从而产生类似"投资获利"的正向预期，进一步激励用户参与。
-5. **四池分配，可持续激励**：CTK 总量 1000 万枚，分为创作者池（400 万）、互动池（200 万）、NFT 池（200 万）、创始人池（200 万）。创作者池用于发帖奖励发放，互动池用于评论奖励和初始奖励，NFT 池用于 NFT 铸造的代币流通。各池额度独立追踪，防止单一通道过度消耗。
-> 一个完整的 Web3 dApp，涵盖钱包连接、智能合约交互、含冷却时间的奖励机制以及 NFT 等级徽章系统。
-## 功能特性
-- **初始奖励领取** — 每个新地址可领取 1 CTK 初始奖励（仅一次）(`claimInitialReward`)
-- **发帖奖励** — 发帖获取 CTK 奖励，含 5 分钟冷却时间 (`rewardPost`)
-- **评论奖励** — 评论获取 CTK 奖励，评论者和帖子作者双方均可获得奖励，含 30 秒冷却时间 (`rewardComment`)
-- **Token 余额** — 实时查询并展示 CTK 余额
-- **CTK 转账** — 向任意地址转账 CTK 代币
-- **NFT 徽章** — 使用 CTK 铸造三等级 NFT（青铜 / 白银 / 黄金），提供奖励倍率加成
-- **NFT 销毁退款** — 销毁 NFT 可返还 80% 铸造成本的 CTK
-- **NFT 转移** — 将持有的 NFT 转移给其他地址
-- **管理员控制** — 创作者池 / 互动池奖励发放、批量发放、NFT 价格管理、溢出 CTK 提取
-- **合约部署** — 从前端界面直接部署 CreatorToken 和 CreatorNFT 合约
-- **交易历史** — 本地缓存交易记录，并提供区块浏览器跳转链接
-- **数据缓存** — 按链 ID + 合约地址 + 账户地址智能缓存链上只读数据、帖子列表和交易历史
-- **内置用户手册** — 访问 `/CreatorCommunity/manual` 查看完整的使用指南
-## 技术栈
-| 类别 | 技术 |
-|------|------|
-| 框架 | [Vue 3](https://cn.vuejs.org/)（Composition API + `<script setup>`） |
-| 构建工具 | [Vite 8](https://cn.vite.dev/) |
-| 路由 | [Vue Router 4](https://router.vuejs.org/)（HTML5 模式，base 路径 `/CreatorCommunity`） |
-| Web3 库 | [ethers.js v6](https://docs.ethers.org/v6/) |
-| UI 库 | [Element Plus](https://element-plus.org/zh-CN/) |
-| Markdown 解析 | [markdown-it](https://github.com/markdown-it/markdown-it) |
-| 钱包 | MetaMask（BrowserProvider） |
-| 网络 | 以太坊 Sepolia 测试网（Chain ID: `11155111`） |
-## 智能合约
-本项目与两个智能合约交互：
-### CreatorToken（ERC-20，符号：CTK，总量 10,000,000）
-具有四池分配机制（创作者池 40%、互动池 20%、NFT 池 20%、创始人池 20%）的 ERC-20 代币。
-> 以下列出合约全部函数。部分函数已由前端调用，其余函数预实现但未在前端使用，开发者可自行修改前端代码进行调用。
-#### 管理员函数（仅合约 owner 可调用）
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `sendCreatorReward` | `(address to, uint256 amount)` | 从创作者池向指定地址发放 CTK 奖励 |
-| `sendInteractReward` | `(address to, uint256 amount)` | 从互动池向指定地址发放 CTK 奖励 |
-| `batchSendReward` | `(address[] tos, uint256[] amounts)` | 批量从创作者池发放奖励，上限 100 条 |
-| `withdrawTokens` | `(uint256 amount)` | 管理员提取代币，按 70% 创作者池 + 30% 互动池比例扣除额度 |
-| `destroyContract` | 无 | 永久停用合约：回收 NFT 合约中的 CTK 余额至 owner，设置 `isPaused = true` |
-#### 社区互动函数（发帖 / 评论奖励，记账模式）
-采用"先记账、后提现"模式：调用 `rewardPost` / `rewardComment` / `claimInitialReward` 仅记录待领取奖励，需调用对应 `withdraw*` 函数才能将 CTK 转入钱包余额。
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `rewardPost` | 无 | 发帖获取 CTK 奖励（基础 2 CTK + NFT 增益），5 分钟冷却，返回 `postId` |
-| `rewardComment` | `(address author, uint256 postId)` | 评论获取奖励，评论者和帖子作者双方均获得 CTK（基础各 0.1 CTK + NFT 增益），30 秒冷却 |
-| `claimInitialReward` | 无 | 领取初始奖励（1 CTK），每地址仅限一次 |
-#### 奖励提现函数
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `withdrawPostRewards` | 无 | 提取当前地址所有待领取的发帖奖励 |
-| `withdrawCommentRewards` | 无 | 提取当前地址所有待领取的评论奖励 |
-| `withdrawInitialReward` | 无 | 提取当前地址待领取的初始奖励 |
-| `withdrawAllRewards` | 无 | 一键提取所有类型的待领取奖励（发帖 + 评论 + 初始） |
-#### ERC-20 标准函数
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `transfer` | `(address to, uint256 amount)` | 向指定地址转账 CTK |
-| `approve` | `(address spender, uint256 amount)` | 授权第三方地址使用指定额度的 CTK |
-| `transferFrom` | `(address from, address to, uint256 amount)` | 从授权地址转账 CTK |
-#### NFT 合约互操作函数（合约间调用）
-这些函数仅供 `CreatorNFT` 合约调用，用于两合约间的 CTK 流转与池额度同步。
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `nftPoolTransfer` | `(address to, uint256 amount)` | 从 NFT 池向指定地址转出 CTK（仅 owner） |
-| `transferFromUserForNFT` | `(address from, uint256 amount)` | 从用户地址向 NFT 合约转入 CTK（仅 NFT 合约可调用） |
-| `receiveFromNFTToCreatorPool` | `(uint256 amount)` | 接收 NFT 合约退回的 CTK，减少创作者池已用额度（仅 NFT 合约可调用） |
-| `receiveFromNFTToInteractPool` | `(uint256 amount)` | 接收 NFT 合约退回的 CTK，减少互动池已用额度（仅 NFT 合约可调用） |
-| `transferFromCreatorPoolToNFT` | `(uint256 amount)` | 从创作者池向 NFT 合约转入 CTK（仅 NFT 合约可调用，用于 NFT 销毁退款时补充流动性） |
-| `transferFromInteractPoolToNFT` | `(uint256 amount)` | 从互动池向 NFT 合约转入 CTK（仅 NFT 合约可调用） |
-#### 只读查询函数
-| 函数 | 参数 | 返回值 | 说明 |
-|------|------|--------|------|
-| `balanceOf` | `(address)` | `uint256` | 标准 ERC-20 余额查询 |
-| `hasClaimedInitialReward` | `(address)` | `bool` | 是否已领取初始奖励 |
-| `lastPostTime` | `(address)` | `uint256` | 用户上次发帖时间戳 |
-| `lastCommentTime` | `(address)` | `uint256` | 用户上次评论时间戳 |
-| `calculateNFTBoost` | `(address user)` | `uint256` | NFT 奖励增益百分比（上限 50%） |
-| `calculatePostCap` | `(address user)` | `uint256` | 考虑 NFT 增益后的发帖奖励上限 |
-| `calculateCommentCap` | `(address user)` | `uint256` | 考虑 NFT 增益后的评论奖励上限 |
-| `getPendingRewards` | `(address user)` | `(post, comment, initial, total)` | 查询用户各类型待领取奖励及总额 |
-| `getAuthorByPostId` | `(uint256 postId)` | `address` | 根据帖子 ID 查询作者地址 |
-| `postAuthor` | `(uint256)` | `address` | 帖子 ID → 作者地址映射（公开只读） |
-| `postIdCounter` | 无 | `uint256` | 帖子 ID 自增计数器 |
-| `creatorPoolUsed` | 无 | `uint256` | 创作者池已发放总额 |
-| `interactPoolUsed` | 无 | `uint256` | 互动池已发放总额 |
-| `nftPoolUsed` | 无 | `uint256` | NFT 池已转出总额 |
-| `isPaused` | 无 | `bool` | 合约是否处于暂停状态 |
-#### 常量参数
-| 常量 | 值 | 说明 |
-|------|------|------|
-| `TOTAL_SUPPLY` | 10,000,000 CTK | 代币总供应量 |
-| `CREATOR_POOL` | 4,000,000 CTK | 创作者激励池总量 |
-| `INTERACT_POOL` | 2,000,000 CTK | 互动激励池总量 |
-| `NFT_POOL` | 2,000,000 CTK | NFT 兑换池总量 |
-| `FOUNDER_POOL` | 2,000,000 CTK | 创始人池总量 |
-| `INITIAL_REWARD` | 1 CTK | 新用户初始奖励 |
-| `POST_REWARD` | 2 CTK | 发帖基础奖励 |
-| `COMMENT_REWARD` | 0.1 CTK | 评论基础奖励 |
-| `POST_INTERVAL` | 300 秒 | 发帖冷却时间 |
-| `COMMENT_INTERVAL` | 30 秒 | 评论冷却时间 |
-| `POST_COMMENT_REWARD_CAP` | 3 CTK | 单帖子评论奖励总上限 |
-| `USER_COMMENT_REWARD_CAP` | 0.5 CTK | 单用户对单帖子评论奖励上限 |
-| `MAX_BOOST_RATE` | 50% | NFT 增益上限 |
-| `MAX_POST_REWARD` | 10 CTK | 发帖奖励绝对上限 |
-| `MAX_COMMENT_REWARD` | 2 CTK | 评论奖励绝对上限 |
-### CreatorNFT（ERC-721，符号：CMN）
-三等级 NFT 徽章系统：青铜（BRONZE）、白银（SILVER）、黄金（GOLD）。继承 OpenZeppelin 的 `ERC721Enumerable` 和 `ERC721Burnable`。
-> 以下列出合约全部函数。部分函数已由前端调用，其余函数预实现但未在前端使用，开发者可自行修改前端代码进行调用。
-#### NFT 铸造函数
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `mintBronzeNFT` | 无 | 铸造青铜 NFT（消耗 CTK，初始价格 1000 CTK） |
-| `mintSilverNFT` | 无 | 铸造白银 NFT（消耗 CTK，初始价格 5000 CTK） |
-| `mintGoldNFT` | 无 | 铸造黄金 NFT（消耗 CTK，初始价格 10000 CTK） |
-内部流程：检查用户 CTK 余额 → 从用户账户转 CTK 到 NFT 合约 → 铸造 NFT → 更新动态提取阈值 → 处理溢出 CTK（超过 200 万 CTK 的部分按比例返还给 CreatorToken 的两个池）。
-#### NFT 销毁函数
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `burnNFTForRefund` | `(uint256 tokenId)` | 销毁指定 NFT，返还 80% 铸造价格的 CTK；若 NFT 合约余额不足，自动从 CreatorToken 的创作者池和互动池补充流动性 |
-| `burn` | `(uint256 tokenId)` | 标准 ERC721Burnable 销毁（无 CTK 退款，仅销毁 NFT） |
-#### NFT 转移函数
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `transferFrom` | `(address from, address to, uint256 tokenId)` | 标准 ERC721 转移，自动更新双方 NFT 等级计数 |
-| `safeTransferFrom` | `(address from, address to, uint256 tokenId, bytes data)` | 安全转移（含附加数据），自动更新双方 NFT 等级计数 |
-#### CTK 提取与溢出处理（管理员）
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `withdrawCTK` | 无 | 提取 NFT 合约中超出阈值的 CTK 余额，按 70% 创作者池 + 30% 互动池比例返还给 CreatorToken |
-| `withdrawAllCTK` | 无 | 提取 NFT 合约全部可提取 CTK 余额，按 70% 创作者池 + 30% 互动池比例返还 |
-| `withdrawOverflow` | 无 | 提取 NFT 合约中超过 200 万 CTK 的溢出部分，按 70% 创作者池 + 30% 互动池比例返还 |
-| `recoverCTK` | 无 | 回收 NFT 合约全部 CTK 余额至 CreatorToken 合约，设置 `isPaused = true`（永久停用） |
-| `checkAndHandleOverflow` | 内部函数 | 当 NFT 合约 CTK 余额超过 200 万（NFT_POOL_INITIAL）时，自动将溢出部分按 70/30 比例返还给 CreatorToken 的创作者池和互动池 |
-#### NFT 价格管理（管理员）
-| 函数 | 参数 | 说明 |
-|------|------|------|
-| `randomlyAdjustNFTPrice` | 无 | 随机调整三种 NFT 价格（±10%），受初始值 50%-150% 区间和等级价格关系约束 |
-| `resetNFTPrice` | 无 | 重置三种 NFT 价格为初始值（青铜 1000 / 白银 5000 / 黄金 10000 CTK） |
-#### 只读查询函数
-| 函数 | 参数 | 返回值 | 说明 |
-|------|------|--------|------|
-| `nftRank` | `(uint256 tokenId)` | `NFTRank (0/1/2)` | 查询指定 NFT 的等级 |
-| `nftRankCount` | `(NFTRank rank)` | `uint256` | 全网各等级 NFT 总数量 |
-| `userNFTRankCount` | `(address, NFTRank)` | `uint256` | 指定用户持有各等级 NFT 数量 |
-| `bronzePrice` | 无 | `uint256` | 当前青铜 NFT 价格 |
-| `silverPrice` | 无 | `uint256` | 当前白银 NFT 价格 |
-| `goldPrice` | 无 | `uint256` | 当前黄金 NFT 价格 |
-| `withdrawalThreshold` | 无 | `uint256` | 当前动态提取阈值（所有 NFT 价值 × 80%） |
-| `getWithdrawableAmount` | 无 | `uint256` | NFT 合约中可提取的 CTK 数量 |
-| `getNFTsByOwner` | `(address owner)` | `uint256[]` | 获取指定用户所有 NFT 的 token ID 列表 |
-| `getNFTRankCounts` | 无 | `(bronze, silver, gold)` | 全网各等级 NFT 数量统计 |
-| `getNFTRankCountsByOwner` | `(address owner)` | `(bronze, silver, gold)` | 指定用户各等级 NFT 数量统计 |
-| `getUserNFTRankCount` | `(address user, uint8 rank)` | `uint256` | 指定用户指定等级 NFT 数量（rank: 0=青铜, 1=白银, 2=黄金） |
-| `balanceOf` | `(address owner)` | `uint256` | 标准 ERC-721 查询用户 NFT 持有数量 |
-| `ownerOf` | `(uint256 tokenId)` | `address` | 标准 ERC-721 查询 NFT 持有者地址 |
-| `tokenOfOwnerByIndex` | `(address owner, uint256 index)` | `uint256` | ERC-721Enumerable 按索引查询用户 NFT |
-| `totalSupply` | 无 | `uint256` | ERC-721Enumerable 全网 NFT 总供应量 |
-| `tokenByIndex` | `(uint256 index)` | `uint256` | ERC-721Enumerable 按索引查询全网 NFT |
-| `isPaused` | 无 | `bool` | 合约是否处于暂停状态 |
-#### 常量参数
-| 常量 | 值 | 说明 |
-|------|------|------|
-| `MIN_BALANCE_THRESHOLD` | 10,000 CTK | 合约最低 CTK 余额阈值 |
-| `NFT_POOL_INITIAL` | 2,000,000 CTK | NFT 池初始注入金额 |
-| `CREATOR_POOL_RATIO` | 70 | 溢出分配比例 — 创作者池占比 |
-| `INTERACT_POOL_RATIO` | 30 | 溢出分配比例 — 互动池占比 |
-| `INITIAL_BRONZE_PRICE` | 1,000 CTK | 青铜 NFT 初始价格（调价基准） |
-| `INITIAL_SILVER_PRICE` | 5,000 CTK | 白银 NFT 初始价格（调价基准） |
-| `INITIAL_GOLD_PRICE` | 10,000 CTK | 黄金 NFT 初始价格（调价基准） |
+
+## 当前前端已实现能力
+
+### 钱包、网络与部署
+
+- 使用 `ethers.BrowserProvider(window.ethereum)` 连接钱包
+- 自动恢复已授权账户
+- 支持切换到 `.env` 指定的目标网络，默认 Sepolia `11155111`
+- 支持从前端部署 `CreatorToken`
+- 部署完成后通过 `creatorNFT()` 自动读取并保存 `CreatorNFT` 地址
+- 合约地址按链隔离保存，刷新页面后自动恢复
+
+### 链上数据与缓存
+
+- 查询 CTK 余额、初始奖励领取状态、发帖/评论冷却、NFT 增益、NFT 价格、NFT 持有情况、待提现奖励
+- 查询管理员奖池状态和 NFT 合约可提取余额
+- 本地缓存用户数据、帖子列表、奖池数据、交易历史和 UI 设置
+- 本地恢复发帖 / 评论倒计时，避免刷新后冷却展示丢失
+
+### 奖励与互动
+
+- `claimInitialReward`
+- `rewardPost`
+- `rewardComment`
+- `withdrawPostRewards`
+- `withdrawCommentRewards`
+- `withdrawInitialReward`
+- `withdrawAllRewards`
+
+重要：`claimInitialReward`、`rewardPost`、`rewardComment` 只记录“待领取奖励”，不会立刻把 CTK 打到钱包余额；前端已单独提供对应提现入口。
+
+### NFT
+
+- `mintBronzeNFT`
+- `mintSilverNFT`
+- `mintGoldNFT`
+- `burnNFTForRefund`
+- `transferFrom`（NFT 转移，受管理员开关控制）
+
+### 管理员能力
+
+- `sendCreatorReward`
+- `sendInteractReward`
+- `resetNFTPrice`
+- `randomlyAdjustNFTPrice`
+- `withdrawCTK`
+- `withdrawAllCTK`
+- `withdrawOverflow`
+
+### 文档与双语
+
+- README 中英双份
+- 应用内手册中英双份
+- 手册页运行时读取的源文件为：
+  - `public/user-manual.zh.md`
+  - `public/user-manual.en.md`
+
+## 合约交互边界
+
+### 前端已接入的写操作
+
+| 合约 | 前端已接入 |
+| --- | --- |
+| `CreatorToken` | `claimInitialReward`, `rewardPost`, `rewardComment`, `withdrawPostRewards`, `withdrawCommentRewards`, `withdrawInitialReward`, `withdrawAllRewards`, `transfer`, `sendCreatorReward`, `sendInteractReward` |
+| `CreatorNFT` | `mintBronzeNFT`, `mintSilverNFT`, `mintGoldNFT`, `burnNFTForRefund`, `transferFrom`, `resetNFTPrice`, `randomlyAdjustNFTPrice`, `withdrawCTK`, `withdrawAllCTK`, `withdrawOverflow` |
+
+### 合约存在但前端未直接暴露的方法
+
+| 合约 | 方法 |
+| --- | --- |
+| `CreatorToken` | `batchSendReward`, `withdrawTokens`, `destroyContract` |
+| `CreatorNFT` | `recoverCTK` |
+
+这意味着 README 不再把前端说成“完整覆盖全部合约能力”；当前 UI 只接入了上表中的实际入口。
+
+### 前端依赖的关键只读逻辑
+
+- `CreatorToken`
+  - `balanceOf`
+  - `hasClaimedInitialReward`
+  - `lastPostTime`
+  - `POST_INTERVAL`
+  - `lastCommentTime`
+  - `COMMENT_INTERVAL`
+  - `calculateNFTBoost`
+  - `getPendingRewards`
+  - `postIdCounter`
+  - `postAuthor`
+  - `CREATOR_POOL`
+  - `INTERACT_POOL`
+  - `creatorPoolUsed`
+  - `interactPoolUsed`
+- `CreatorNFT`
+  - `bronzePrice`
+  - `silverPrice`
+  - `goldPrice`
+  - `balanceOf`
+  - `getNFTsByOwner`
+  - `nftRank`
+  - `NFT_POOL`
+  - `nftPoolUsed`
+  - `getWithdrawableAmount`
+
+## 架构与数据流
+
+### 前端架构
+
+- `App.vue`
+  - 唯一业务编排层
+  - 组合所有 composable
+  - 处理所有写操作、通知、刷新、缓存保存
+  - 用 `provide()` 向子组件分发状态和事件
+- 子组件
+  - 纯展示组件
+  - 只通过 `props` 和 `emit` 交互
+  - 不直接持有业务 composable
+
+### 合约实例模型
+
+每份合约都会创建两类实例：
+
+- `tokenContractRead` / `nftContractRead`
+  - 基于 provider
+  - 用于只读查询
+- `tokenContractWrite` / `nftContractWrite`
+  - 基于 signer
+  - 用于写交易
+
+实例存储使用 `shallowRef`，避免把合约对象交给 Vue 深度响应式代理。
+
+### 交易处理模型
+
+所有前端写操作统一经过：
+
+1. `useTransaction().execute(fn)`
+2. `App.vue` 中的 `doWrite(...)`
+
+这两层负责：
+
+- pending / success / error 生命周期
+- 区块浏览器跳转
+- 错误码映射
+- 本地交易历史记录
+- 读数据刷新
+
+### 缓存与本地持久化
+
+当前实现使用以下关键存储规则：
+
+- 合约地址
+  - `creatorcommunity_${chainId}_token_address`
+  - `creatorcommunity_${chainId}_nft_address`
+- 当前链
+  - `creatorcommunity_current_chainId`
+- 统一数据缓存
+  - `creatorcommunity_${chainId}_${tokenAddr}`
+- 冷却缓存
+  - `creatorcommunity_${chainId}_${account}_cooldown_post`
+  - `creatorcommunity_${chainId}_${account}_cooldown_comment`
+- 暗色模式
+  - `creatorcommunity-dark-mode`
+
+统一数据缓存内部包含：
+
+- `userData_${account}`
+- `pools`
+- `txHistory`
+- `posts`
+- `settings`
+
+### 当前实现上的重要限制
+
+- 转账入口不是默认可见，只有管理员打开后用户侧才显示 CTK / NFT 转账表单
+- 断开钱包不会清除已保存的合约地址；断开连接不等于重置部署
+- 切换网络后需要对应链上的地址记录；如果该链没有地址，前端会回到“未部署”状态
+- 交易历史当前使用 `useDataStore` 里的统一缓存；仓库内还保留一个未接入主流程的 `useTxHistory.js`
+
 ## 快速开始
+
 ### 环境要求
-- **Node.js** `^20.19.0` 或 `>=22.12.0`
-- **MetaMask** 浏览器插件（或其他兼容的 Web3 钱包）
-- **以太坊 Sepolia 测试网** 访问权限（在 MetaMask 中添加 Sepolia 网络并从水龙头获取测试 ETH）
+
+- Node.js `^20.19.0 || >=22.12.0`
+- MetaMask 或兼容 `window.ethereum` 的钱包
+- Sepolia 测试 ETH
+
 ### 安装依赖
+
 ```bash
-# 克隆仓库
-git clone <repository-url>
+git clone https://github.com/anweicaiwei/CreatorCommunity.git
 cd creatorcommunity
-# 安装依赖
 npm install
 ```
+
 ### 本地开发
+
 ```bash
-# 启动开发服务器（支持热重载）
 npm run dev
 ```
-应用将在 `http://localhost:5173/CreatorCommunity/` 启动。
+
+默认访问地址：
+
 - 首页：`http://localhost:5173/CreatorCommunity/`
-- 用户手册：`http://localhost:5173/CreatorCommunity/manual`
+- 手册页：`http://localhost:5173/CreatorCommunity/manual`
+
 ### 生产构建
+
 ```bash
-# 构建生产版本（已压缩）
 npm run build
-# 本地预览生产构建
 npm run preview
 ```
-### 环境变量（可选）
-在项目根目录创建 `.env` 文件以覆盖默认网络配置：
+
+### 环境变量
+
 ```env
 VITE_TARGET_CHAIN_ID=11155111
 VITE_NETWORK_NAME=Sepolia Testnet
 VITE_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
 VITE_BLOCK_EXPLORER=https://sepolia.etherscan.io
 ```
-## 项目结构
+
+## 关键目录
+
+```text
+src/
+  App.vue                    # 唯一业务编排层
+  main.js                    # 应用入口
+  router/index.js            # /CreatorCommunity 路由配置
+  components/
+    HomeView.vue             # 主页展示层
+    ManualView.vue           # 手册页展示层
+    WalletSection.vue        # 钱包、部署、转账开关
+    RewardSection.vue        # 奖励记录与提现
+    PostSection.vue          # 发帖与评论奖励
+    NFTSection.vue           # NFT 铸造、销毁、转移
+    AdminSection.vue         # 管理员面板
+    ChainDataSection.vue     # 链上数据总览
+    TxHistorySection.vue     # 交易历史
+  composables/
+    useWallet.js
+    useDeploy.js
+    useTransaction.js
+    useContractAddress.js
+    useDataStore.js
+  contracts/
+    CreatorToken.sol
+    CreatorNFT.sol
+    CreatorToken_ABI.json
+    CreatorNFT_ABI.json
+    CreatorToken_Bytecode
+    CreatorNFT_Bytecode
+public/
+  user-manual.zh.md          # 中文手册源文件
+  user-manual.en.md          # 英文手册源文件
+README.md
+README.en.md
 ```
-creatorcommunity/
-├── public/                      # 静态资源
-│   └── user-manual.md           # 内置用户手册（Markdown）
-├── src/
-│   ├── assets/                  # 全局样式与 Logo
-│   │   ├── base.css
-│   │   └── main.css
-│   ├── components/              # Vue UI 组件
-│   │   ├── HomeView.vue         # 首页视图
-│   │   ├── ManualView.vue       # 用户手册视图
-│   │   ├── WalletSection.vue    # 钱包连接/断开与网络状态指示
-│   │   ├── DeploySection.vue    # 合约部署面板
-│   │   ├── RewardSection.vue    # 领取奖励与 CTK 转账
-│   │   ├── PostSection.vue      # 发帖/评论奖励操作与帖子列表
-│   │   ├── NFTSection.vue       # NFT 铸造、销毁、转移面板
-│   │   ├── AdminSection.vue     # 管理员专属控制面板（仅 owner）
-│   │   ├── ChainDataSection.vue # 侧边栏：余额、冷却时间、NFT 信息
-│   │   ├── TxHistorySection.vue # 交易历史记录
-│   │   ├── TransferSection.vue  # 资产转账 UI（CTK + NFT）
-│   │   └── card.vue             # 通用卡片容器组件
-│   ├── composables/             # Vue Composition API 逻辑钩子
-│   │   ├── useWallet.js         # 钱包连接、Provider/Signer、网络校验
-│   │   ├── useTransaction.js    # 统一交易状态管理（pending/success/fail）
-│   │   ├── useDeploy.js         # 合约部署逻辑
-│   │   ├── useContractAddress.js# 合约地址管理（按链存储）
-│   │   ├── usePostList.js       # 帖子列表获取与缓存
-│   │   ├── useTxHistory.js      # 交易历史持久化
-│   │   └── useDataStore.js      # 统一数据缓存与状态管理
-│   ├── contracts/               # 合约 ABI 与字节码
-│   │   ├── CreatorToken_ABI.json
-│   │   ├── CreatorNFT_ABI.json
-│   │   ├── CreatorToken.sol     # Solidity 源码（参考）
-│   │   ├── CreatorNFT.sol       # Solidity 源码（参考）
-│   │   ├── CreatorToken_Bytecode
-│   │   ├── CreatorNFT_Bytecode
-│   │   └── index.js             # 合约工厂与统一导出
-│   ├── router/                  # 路由配置
-│   │   └── index.js             # Vue Router 配置
-│   ├── utils/
-│   │   ├── constants.js         # Token 精度、NFT 等级常量
-│   │   └── format.js            # 格式化工具（金额、地址、时间）
-│   ├── config.js                # 网络配置（支持环境变量）
-│   ├── App.vue                  # 应用根组件（路由容器）
-│   └── main.js                  # 应用入口
-├── .env.example                 # 环境变量模板
-├── index.html
-├── package.json
-└── vite.config.js               # Vite 配置（base: /CreatorCommunity）
-```
-## 架构设计
-```
-用户浏览器（MetaMask）
-        │
-        ▼
-  ethers.js BrowserProvider  ←─ 写入交易需钱包签名
-        │
-        ├── Provider（只读调用）
-        └── Signer（签名交易）
-                │
-                ▼
-        CreatorToken 合约  ──  ERC20 + 奖励池
-        CreatorNFT 合约    ──  ERC721 + 等级徽章
-                │
-                ▼
-        以太坊 Sepolia 网络
-```
-- **只读调用**：通过 `Provider` 直接调用，无需 Gas 和签名，结果由 `useDataStore` 缓存
-- **写入交易**：通过 `Signer` 发起，完整生命周期由 `useTransaction` 管理（预估 Gas → 等待确认 → 解析回执 → 区块浏览器链接）
-- **数据缓存**：localStorage 按 `chainId + tokenAddress + accountAddress` 作为缓存键，避免跨链数据混淆
-## Web3 注意事项
-- **需要钱包**：必须安装并连接 Web3 钱包（如 MetaMask）才能使用链上功能
-- **网络要求**：应用目标网络为 **以太坊 Sepolia 测试网**（Chain ID: `11155111`）。如果钱包处于其他网络，应用会提示切换
-- **Gas 费用**：所有写入操作（发帖、评论、铸造、转账等）均消耗 ETH 作为 Gas，请确保 Sepolia 钱包中有测试 ETH
-- **不可撤销**：区块链交易一旦确认无法撤销，请在签名前仔细确认
-- **安全性**：前端代码不存储任何私钥，所有签名操作由用户钱包插件完成
-## 贡献
-欢迎提交 Issue 和 Pull Request 来改进项目。
+
+## 评审重点
+
+阅读或演示这个项目时，优先关注这些实现点：
+
+1. 奖励是“记账 + 提现”两阶段，不是即时到账
+2. `App.vue` 是唯一业务协调层，子组件基本不含业务逻辑
+3. 合约地址、缓存和冷却都做了本地恢复
+4. 管理员与普通用户看到的是同一主页，不同权限决定不同入口可见性
+5. 手册页不是硬编码内容，而是运行时加载 `public/user-manual.*.md`
+
 ## 许可
-本项目仅供学习和演示使用。
+
+仓库内未提供单独的许可证文件；如需发布或复用，请先补充明确的许可声明。

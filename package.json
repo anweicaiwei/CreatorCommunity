@@ -2,6 +2,14 @@
   "name": "creatorcommunity",
   "version": "0.0.0",
   "private": true,
+  "homepage": "https://github.com/anweicaiwei/CreatorCommunity#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/anweicaiwei/CreatorCommunity.git"
+  },
+  "bugs": {
+    "url": "https://github.com/anweicaiwei/CreatorCommunity/issues"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

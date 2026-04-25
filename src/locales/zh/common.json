@@ -15,6 +15,8 @@
     "clear": "清空",
     "transfer": "转账",
     "loading": "加载中...",
+    "open_repository": "打开 GitHub 仓库",
+    "switch_language": "切换语言",
     "switch_dark": "切换暗色模式",
     "switch_light": "切换亮色模式"
   },

@@ -15,6 +15,8 @@
     "clear": "Clear",
     "transfer": "Transfer",
     "loading": "Loading...",
+    "open_repository": "Open GitHub repository",
+    "switch_language": "Switch language",
     "switch_dark": "Switch to dark mode",
     "switch_light": "Switch to light mode"
   },

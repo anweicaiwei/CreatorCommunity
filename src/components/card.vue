@@ -75,7 +75,9 @@ defineSlots();
   --el-card-padding: 20px;
   border: 1px solid var(--color-border);
   border-radius: 12px;
-  background-color: var(--color-background-soft);
+  background:
+    linear-gradient(var(--gradient-primary)) top / 100% 3px no-repeat,
+    var(--color-background-soft);
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s, background-color 0.3s;
   position: relative;
@@ -84,18 +86,6 @@ defineSlots();
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-}
-
-.light-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
-  opacity: 0.9;
-  border-radius: 12px 12px 0 0;
 }
 
 .light-card:hover {
@@ -152,7 +142,4 @@ defineSlots();
 }
 
 /* 暗黑模式覆盖 */
-html.dark .light-card::before {
-  background: var(--gradient-primary);
-}
 </style>

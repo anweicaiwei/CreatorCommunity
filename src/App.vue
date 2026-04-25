@@ -7,6 +7,7 @@ import { useTransaction } from '@/composables/useTransaction'
 import { useContractAddress } from '@/composables/useContractAddress'
 import { useDeploy } from '@/composables/useDeploy'
 import { useDataStore } from '@/composables/useDataStore'
+import { config } from '@/config'
 import { formatTokenAmount, formatCooldown, getCooldownStatus, shortenAddress } from '@/utils/format'
 import { DECIMALS } from '@/utils/constants'
 import { NETWORK_CONFIG } from '@/contracts'
@@ -954,6 +955,7 @@ provide('deployedTokenAddress', deployedTokenAddress)
 provide('deployedNftAddress', deployedNftAddress)
 provide('tokenAddress', tokenAddress)
 provide('nftAddress', nftAddress)
+provide('githubUrl', config.app.repositoryUrl)
 provide('isInitializing', isInitializing)
 provide('isCorrectNetwork', isCorrectNetwork)
 provide('emit', (event, ...args) => {

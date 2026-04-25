@@ -1,9 +1,9 @@
 <script setup>
-import { inject, ref } from 'vue'
+import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { QuestionFilled, Loading, Sunny, Moon } from '@element-plus/icons-vue'
+import { Loading } from '@element-plus/icons-vue'
+import AppTopBar from '@/components/AppTopBar.vue'
 import WalletSection from '@/components/WalletSection.vue'
-import DeploySection from '@/components/DeploySection.vue'
 import ChainDataSection from '@/components/ChainDataSection.vue'
 import TxHistorySection from '@/components/TxHistorySection.vue'
 import RewardSection from '@/components/RewardSection.vue'
@@ -11,26 +11,11 @@ import PostSection from '@/components/PostSection.vue'
 import NFTSection from '@/components/NFTSection.vue'
 import AdminSection from '@/components/AdminSection.vue'
 import { setLocale } from '@/locales'
+import { useAppearance } from '@/composables/useAppearance'
 
 const { t, locale } = useI18n()
-
-const STORAGE_KEY = 'creatorcommunity-dark-mode'
-const isDark = ref(localStorage.getItem(STORAGE_KEY) === 'true')
-
-function toggleDark() {
-  isDark.value = !isDark.value
-  if (isDark.value) {
-    document.documentElement.classList.add('dark')
-    localStorage.setItem(STORAGE_KEY, 'true')
-  } else {
-    document.documentElement.classList.remove('dark')
-    localStorage.setItem(STORAGE_KEY, 'false')
-  }
-}
-
-if (isDark.value) {
-  document.documentElement.classList.add('dark')
-}
+const { isDark, toggleDark, syncDarkMode } = useAppearance()
+syncDarkMode()
 
 const readData = inject('readData')
 const readError = inject('readError')
@@ -62,6 +47,7 @@ const deployedTokenAddress = inject('deployedTokenAddress')
 const deployedNftAddress = inject('deployedNftAddress')
 const tokenAddress = inject('tokenAddress')
 const nftAddress = inject('nftAddress')
+const githubUrl = inject('githubUrl', '')
 const isInitializing = inject('isInitializing')
 const isCorrectNetwork = inject('isCorrectNetwork')
 
@@ -72,45 +58,47 @@ function switchLocale(value) {
 
 <template>
   <div class="app-page">
-    <div class="app-header">
-      <h1 class="app-title">CreatorCommunity {{ t('common.app.title') }}</h1>
-      <div class="header-actions">
-        <router-link class="manual-link" to="/CreatorCommunity/manual">
-          <el-icon><QuestionFilled /></el-icon>
-          <span>{{ t('modules.manual.title') }}</span>
-        </router-link>
-        <el-segmented
-          class="language-switch"
-          :model-value="locale"
-          :options="[
-            { label: t('common.language.zh'), value: 'zh' },
-            { label: t('common.language.en'), value: 'en' }
-          ]"
-          @update:model-value="switchLocale"
-        />
-        <el-button class="theme-toggle" circle @click="toggleDark">
-          <el-icon v-if="isDark"><Sunny /></el-icon>
-          <el-icon v-else><Moon /></el-icon>
-        </el-button>
-      </div>
-    </div>
+    <AppTopBar
+      :title="`CreatorCommunity ${t('common.app.title')}`"
+      nav-to="/CreatorCommunity/manual"
+      :nav-label="t('modules.manual.title')"
+      nav-icon="manual"
+      :locale="locale"
+      :is-dark="isDark"
+      :github-url="githubUrl"
+      @switch-locale="switchLocale"
+      @toggle-dark="toggleDark"
+    />
 
     <div class="layout-grid">
       <div class="left-col">
         <WalletSection
-          :is-dark="isDark" :is-connected="isConnected" :is-initializing="isInitializing"
-          :is-correct-network="isCorrectNetwork" :is-owner="isOwner"
-          :current-network="currentNetwork" :account="account" :chain-id="chainId" :error="error"
-          :has-addresses="hasAddresses" :deploy-status="deployStatus"
-          :deploy-error="deployError" :deployed-token-address="deployedTokenAddress"
+          :is-dark="isDark"
+          :is-connected="isConnected"
+          :is-initializing="isInitializing"
+          :is-correct-network="isCorrectNetwork"
+          :is-owner="isOwner"
+          :current-network="currentNetwork"
+          :account="account"
+          :chain-id="chainId"
+          :error="error"
+          :has-addresses="hasAddresses"
+          :deploy-status="deployStatus"
+          :deploy-error="deployError"
+          :deployed-token-address="deployedTokenAddress"
           :deployed-nft-address="deployedNftAddress"
-          :token-address="tokenAddress" :nft-address="nftAddress"
+          :token-address="tokenAddress"
+          :nft-address="nftAddress"
           :block-explorer="blockExplorer"
           :show-transfer="showTransfer"
-          @connect="emit('connect')" @disconnect="emit('disconnect')" @switch-network="emit('switch-network')"
-          @deploy="emit('deploy')" @clear-addresses="emit('clear-addresses')"
+          @connect="emit('connect')"
+          @disconnect="emit('disconnect')"
+          @switch-network="emit('switch-network')"
+          @deploy="emit('deploy')"
+          @clear-addresses="emit('clear-addresses')"
           @toggle-transfer="emit('toggle-transfer')"
         />
+
         <template v-if="isConnected && !isDataLoaded">
           <div class="loading-state">
             <el-icon class="loading-icon" :size="32"><Loading /></el-icon>
@@ -121,8 +109,10 @@ function switchLocale(value) {
         <template v-if="isDataLoaded && canInteract">
           <div class="user-grid">
             <RewardSection
-              :can-interact="canInteract" :write-loading="writeLoading"
-              :read-data="readData" :show-transfer="showTransfer"
+              :can-interact="canInteract"
+              :write-loading="writeLoading"
+              :read-data="readData"
+              :show-transfer="showTransfer"
               @claim-initial="emit('claim-initial')"
               @withdraw-post="emit('withdraw-post')"
               @withdraw-comment="emit('withdraw-comment')"
@@ -132,8 +122,10 @@ function switchLocale(value) {
             />
 
             <PostSection
-              :can-interact="canInteract" :write-loading="writeLoading"
-              :post-loading="postLoading" :post-list="posts"
+              :can-interact="canInteract"
+              :write-loading="writeLoading"
+              :post-loading="postLoading"
+              :post-list="posts"
               :read-data="readData"
               @reward-post="emit('reward-post')"
               @reward-comment="emit('reward-comment')"
@@ -142,23 +134,29 @@ function switchLocale(value) {
           </div>
 
           <NFTSection
-            :can-interact="canInteract" :write-loading="writeLoading"
-            :read-data="readData" :show-transfer="showTransfer"
-            @mint-bronze="emit('mint-bronze')" @mint-silver="emit('mint-silver')"
-            @mint-gold="emit('mint-gold')" @burn-nft="emit('burn-nft')"
+            :can-interact="canInteract"
+            :write-loading="writeLoading"
+            :read-data="readData"
+            :show-transfer="showTransfer"
+            @mint-bronze="emit('mint-bronze')"
+            @mint-silver="emit('mint-silver')"
+            @mint-gold="emit('mint-gold')"
+            @burn-nft="emit('burn-nft')"
             @nft-transfer="emit('nft-transfer')"
           />
 
           <div class="admin-wrapper">
             <AdminSection
               v-if="isOwner && canInteract"
-              :can-interact="canInteract" :write-loading="writeLoading"
+              :can-interact="canInteract"
+              :write-loading="writeLoading"
               :token-contract-read="tokenContractRead"
               :nft-contract-read="nftContractRead"
               :pool-data="poolData"
               @send-creator="emit('send-creator')"
               @send-interact="emit('send-interact')"
-              @reset-price="emit('reset-price')" @adjust-price="emit('adjust-price')"
+              @reset-price="emit('reset-price')"
+              @adjust-price="emit('adjust-price')"
               @withdraw-ctk="emit('withdraw-ctk')"
               @withdraw-all-ctk="emit('withdraw-all-ctk')"
               @withdraw-overflow="emit('withdraw-overflow')"
@@ -169,17 +167,23 @@ function switchLocale(value) {
       </div>
 
       <aside class="sticky-sidebar">
-        <ChainDataSection
-          :read-data="readData" :read-error="readError"
-          :read-loading="readLoading" :label-map="labelMap"
-          :is-wallet-connected="isConnected"
-          @refresh="emit('refresh-data')"
-        />
-        <TxHistorySection
-          :tx-list="txList"
-          :block-explorer="blockExplorer"
-          @clear="emit('clear-tx')"
-        />
+        <div class="sidebar-panel sidebar-panel--data">
+          <ChainDataSection
+            :read-data="readData"
+            :read-error="readError"
+            :read-loading="readLoading"
+            :label-map="labelMap"
+            :is-wallet-connected="isConnected"
+            @refresh="emit('refresh-data')"
+          />
+        </div>
+        <div class="sidebar-panel sidebar-panel--history">
+          <TxHistorySection
+            :tx-list="txList"
+            :block-explorer="blockExplorer"
+            @clear="emit('clear-tx')"
+          />
+        </div>
       </aside>
     </div>
   </div>
@@ -187,99 +191,10 @@ function switchLocale(value) {
 
 <style scoped>
 .app-page {
+  --topbar-offset: 92px;
   max-width: 1600px;
   margin: 0 auto;
   padding: 24px;
-}
-
-.app-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  padding: 16px 24px;
-  background: var(--gradient-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 14px;
-  transition: background 0.3s ease, border-color 0.3s ease;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.theme-toggle {
-  background: rgba(99, 102, 241, 0.06);
-  border: 1px solid var(--color-border-hover);
-  transition: all 0.2s ease;
-}
-
-.language-switch {
-  --el-segmented-item-selected-bg-color: var(--color-primary);
-  --el-segmented-item-selected-color: var(--color-text-inverse);
-}
-
-.theme-toggle:hover {
-  background: var(--gradient-primary);
-  border-color: transparent;
-  color: var(--color-text-inverse);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-primary);
-}
-
-/* 暗黑模式下的头部样式 */
-html.dark .app-header {
-  background: var(--gradient-surface);
-  border: 1px solid var(--color-border-hover);
-}
-
-html.dark .theme-toggle {
-  background: rgba(167, 139, 250, 0.15);
-  border-color: rgba(167, 139, 250, 0.45);
-  color: var(--color-primary-hover);
-}
-
-html.dark .theme-toggle:hover {
-  background: var(--gradient-primary);
-  color: var(--color-text-inverse);
-}
-
-.app-title {
-  background: var(--gradient-primary);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.manual-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--color-primary);
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 8px 16px;
-  border: 1px solid var(--color-border-hover);
-  border-radius: 8px;
-  background: rgba(99, 102, 241, 0.06);
-  transition: all 0.2s ease;
-}
-
-.manual-link:hover {
-  background: var(--gradient-primary);
-  border-color: transparent;
-  color: var(--color-text-inverse);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-primary);
 }
 
 .layout-grid {
@@ -301,24 +216,35 @@ html.dark .theme-toggle:hover {
 
 .sticky-sidebar {
   position: sticky;
-  top: 20px;
-  display: flex;
-  flex-direction: column;
+  top: calc(var(--topbar-offset) + 16px);
+  display: grid;
+  grid-template-rows: minmax(260px, 1fr) minmax(300px, 1fr);
   gap: 20px;
-  height: fit-content;
-  max-height: calc(100vh - 40px);
-  overflow: hidden;
+  height: calc(100vh - var(--topbar-offset) - 32px);
+  min-height: 0;
+  overflow: visible;
 }
 
-.sticky-sidebar > :deep(.el-card) {
-  flex-shrink: 0;
-  min-height: 300px;
+.sidebar-panel {
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
-.sticky-sidebar > :deep(.el-card .el-card__body) {
+.sidebar-panel :deep(.el-card) {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: visible;
+}
+
+.sidebar-panel :deep(.el-card:hover) {
+  z-index: 2;
+}
+
+.sidebar-panel :deep(.el-card .el-card__body) {
   flex: 1 1 0;
   min-height: 0;
   display: flex;
@@ -326,7 +252,7 @@ html.dark .theme-toggle:hover {
   overflow: hidden;
 }
 
-.sticky-sidebar > :deep(.el-card .card-body) {
+.sidebar-panel :deep(.el-card .card-body) {
   flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
@@ -387,27 +313,44 @@ html.dark :deep(.el-table) {
   --el-table-header-bg-color: rgba(30, 41, 59, 0.8);
 }
 
-/* 暗黑模式下的 manual-link */
-html.dark .manual-link {
-  color: var(--color-primary-hover);
-  border-color: rgba(167, 139, 250, 0.4);
-  background: rgba(167, 139, 250, 0.12);
-}
-
-html.dark .manual-link:hover {
-  background: var(--gradient-primary);
-  color: var(--color-text-inverse);
-}
-
 @media (max-width: 1024px) {
-  .user-grid { grid-template-columns: 1fr; }
+  .user-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
+  .app-page {
+    --topbar-offset: 152px;
+  }
 }
 
 @media (max-width: 800px) {
-  .app-page { padding: 12px; }
-  .layout-grid { grid-template-columns: 1fr; }
-  .sticky-sidebar { position: static; height: auto; }
-  .sticky-sidebar > :deep(.el-card) { flex: none; }
-  .sticky-sidebar > :deep(.el-card .card-body) { overflow: visible; }
+  .app-page {
+    padding: 12px;
+  }
+
+  .layout-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sticky-sidebar {
+    position: static;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .sidebar-panel {
+    overflow: visible;
+  }
+
+  .sidebar-panel :deep(.el-card) {
+    height: auto;
+  }
+
+  .sidebar-panel :deep(.el-card .card-body) {
+    overflow: visible;
+  }
 }
 </style>
