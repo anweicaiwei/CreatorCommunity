@@ -66,7 +66,7 @@ function saveChainId(chainId) {
   } catch {}
 }
 
-// Initialize — load from last known chainId
+// 初始化：从最近一次链 ID 恢复合约地址。
 const lastChainId = (() => {
   try { return localStorage.getItem('creatorcommunity_current_chainId') || '11155111' }
   catch { return '11155111' }

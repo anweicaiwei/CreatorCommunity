@@ -27,31 +27,31 @@ const contractsReady = computed(() =>
   !!tokenContractRead.value && !!nftContractRead.value
 )
 
-const { tokenAddress, nftAddress, loadAddresses, saveChainId, clearAddresses } = useContractAddress()
+const { tokenAddress, nftAddress, loadAddresses, saveChainId } = useContractAddress()
 
-// 自动恢复连接 - 页面刷新时检查已授权的账户
+// 自动恢复连接：页面刷新时检查钱包已授权账户。
 async function initAutoConnect() {
   if (!window.ethereum) return false
-  
+
   try {
     const accounts = await window.ethereum.request({ method: 'eth_accounts' })
     if (accounts.length === 0) return false
-    
+
     isInitializing.value = true
     error.value = null
-    
+
     const browserProvider = new ethers.BrowserProvider(window.ethereum)
     const network = await browserProvider.getNetwork()
     const userSigner = await browserProvider.getSigner()
-    
+
     account.value = accounts[0]
     chainId.value = Number(network.chainId)
     provider.value = browserProvider
     signer.value = userSigner
-    
+
     saveChainId(Number(network.chainId))
     loadAddresses(Number(network.chainId))
-    
+
     return true
   } catch (e) {
     console.error('Auto connect failed:', e)
@@ -97,7 +97,7 @@ async function checkOwner() {
   }
 }
 
-// Watch for address/provider/signer changes to recreate contract instances
+// 地址、provider 或 signer 变化后重建合约实例。
 watch([tokenAddress, nftAddress, provider, signer], () => {
   createContractInstances()
   checkOwner()
@@ -157,7 +157,7 @@ async function switchNetwork() {
             nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }
           }]
         })
-      } catch (addErr) {
+      } catch {
         error.value = t('modules.wallet.error.add_network_failed')
       }
     } else {
@@ -177,7 +177,7 @@ function disconnect() {
   nftContractWrite.value = null
   isOwner.value = false
   error.value = null
-  // Do NOT clear localStorage addresses — disconnecting ≠ resetting deployment
+  // 断开钱包不清除部署地址；重置部署走独立入口。
 }
 
 let listenersSetup = false
@@ -186,6 +186,7 @@ function setupListeners() {
   if (!window.ethereum || listenersSetup) return
   listenersSetup = true
 
+  // 钱包事件只注册一次，账户或网络变化后刷新 provider、signer 和链 ID。
   window.ethereum.on('accountsChanged', async (accounts) => {
     if (accounts.length === 0) {
       disconnect()

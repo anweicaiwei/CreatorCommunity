@@ -1,5 +1,5 @@
 <script setup>
-import { ref, inject, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import MarkdownIt from 'markdown-it'
@@ -7,6 +7,7 @@ import { Loading } from '@element-plus/icons-vue'
 import AppTopBar from '@/components/AppTopBar.vue'
 import { setLocale } from '@/locales'
 import { useAppearance } from '@/composables/useAppearance'
+import { useCommunityApp } from '@/composables/useAppProvide'
 
 const htmlContent = ref('')
 const loading = ref(true)
@@ -17,7 +18,7 @@ const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
 const currentLang = ref(locale.value)
-const githubUrl = inject('githubUrl', '')
+const { githubUrl } = useCommunityApp()
 const { isDark, toggleDark, syncDarkMode } = useAppearance()
 
 function slugify(text) {

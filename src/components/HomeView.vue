@@ -1,5 +1,4 @@
 <script setup>
-import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { Loading } from '@element-plus/icons-vue'
 import AppTopBar from '@/components/AppTopBar.vue'
@@ -12,47 +11,50 @@ import NFTSection from '@/components/NFTSection.vue'
 import AdminSection from '@/components/AdminSection.vue'
 import { setLocale } from '@/locales'
 import { useAppearance } from '@/composables/useAppearance'
+import { useCommunityApp } from '@/composables/useAppProvide'
 
 const { t, locale } = useI18n()
 const { isDark, toggleDark, syncDarkMode } = useAppearance()
 syncDarkMode()
 
-const readData = inject('readData')
-const readError = inject('readError')
-const readLoading = inject('readLoading')
-const labelMap = inject('labelMap')
-const canInteract = inject('canInteract')
-const writeLoading = inject('writeLoading')
-const isConnected = inject('isConnected')
-const isOwner = inject('isOwner')
-const postLoading = inject('postLoading')
-const posts = inject('posts')
-const poolData = inject('poolData')
-const txHistoryList = inject('txHistoryList')
-const txHistoryScope = inject('txHistoryScope')
-const setTxHistoryScope = inject('setTxHistoryScope')
-const globalRefreshLoading = inject('globalRefreshLoading')
-const dataLoadingProgress = inject('dataLoadingProgress')
-const blockExplorer = inject('blockExplorer')
-const showTransfer = inject('showTransfer')
-const tokenContractRead = inject('tokenContractRead')
-const nftContractRead = inject('nftContractRead')
-const emit = inject('emit')
-const isDataLoaded = inject('isDataLoaded')
-const currentNetwork = inject('currentNetwork')
-const account = inject('account')
-const chainId = inject('chainId')
-const error = inject('error')
-const hasAddresses = inject('hasAddresses')
-const deployStatus = inject('deployStatus')
-const deployError = inject('deployError')
-const deployedTokenAddress = inject('deployedTokenAddress')
-const deployedNftAddress = inject('deployedNftAddress')
-const tokenAddress = inject('tokenAddress')
-const nftAddress = inject('nftAddress')
-const githubUrl = inject('githubUrl', '')
-const isInitializing = inject('isInitializing')
-const isCorrectNetwork = inject('isCorrectNetwork')
+const {
+  readData,
+  readError,
+  readLoading,
+  labelMap,
+  canInteract,
+  writeLoading,
+  isConnected,
+  isOwner,
+  postLoading,
+  posts,
+  poolData,
+  txHistoryList,
+  txHistoryScope,
+  setTxHistoryScope,
+  globalRefreshLoading,
+  dataLoadingProgress,
+  blockExplorer,
+  showTransfer,
+  tokenContractRead,
+  nftContractRead,
+  emit,
+  isDataLoaded,
+  currentNetwork,
+  account,
+  chainId,
+  error,
+  hasAddresses,
+  deployStatus,
+  deployError,
+  deployedTokenAddress,
+  deployedNftAddress,
+  tokenAddress,
+  nftAddress,
+  githubUrl,
+  isInitializing,
+  isCorrectNetwork
+} = useCommunityApp()
 
 function switchLocale(value) {
   setLocale(value)
