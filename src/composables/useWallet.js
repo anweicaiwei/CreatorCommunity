@@ -4,13 +4,75 @@ import { getContracts, NETWORK_CONFIG } from '@/contracts'
 import { useContractAddress } from '@/composables/useContractAddress'
 import { t } from '@/locales'
 
-const account = ref(null)
-const chainId = ref(null)
+const WALLET_ACCOUNT_KEY = 'creatorcommunity_last_wallet_account'
+const WALLET_CHAIN_ID_KEY = 'creatorcommunity_current_chainId'
+
+function loadCachedWalletAccount() {
+  try {
+    return localStorage.getItem(WALLET_ACCOUNT_KEY) || null
+  } catch {
+    return null
+  }
+}
+
+function loadCachedChainId() {
+  try {
+    const cached = localStorage.getItem(WALLET_CHAIN_ID_KEY)
+    return cached ? Number(cached) : null
+  } catch {
+    return null
+  }
+}
+
+function saveWalletSession(address, networkId) {
+  try {
+    if (address) localStorage.setItem(WALLET_ACCOUNT_KEY, address)
+    if (networkId) localStorage.setItem(WALLET_CHAIN_ID_KEY, String(networkId))
+  } catch {}
+}
+
+function clearWalletSession() {
+  try {
+    localStorage.removeItem(WALLET_ACCOUNT_KEY)
+  } catch {}
+}
+
+function normalizeAddress(address) {
+  return typeof address === 'string' ? address.trim().toLowerCase() : ''
+}
+
+function getConnectTimeKey(address, networkId) {
+  return `creatorcommunity_${networkId || 'unknown'}_${address || ''}_connect_time`
+}
+
+function clearConnectTimeCache(address, networkId) {
+  if (!address) return
+
+  const normalizedAccount = normalizeAddress(address)
+  try {
+    localStorage.removeItem(getConnectTimeKey(address, networkId))
+
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i)
+      if (
+        key &&
+        key.startsWith('creatorcommunity_') &&
+        key.endsWith('_connect_time') &&
+        key.toLowerCase().includes(`_${normalizedAccount}_connect_time`)
+      ) {
+        localStorage.removeItem(key)
+      }
+    }
+  } catch {}
+}
+
+const account = ref(loadCachedWalletAccount())
+const chainId = ref(loadCachedChainId())
 const provider = shallowRef(null)
 const signer = shallowRef(null)
 const isConnected = computed(() => !!account.value)
 const isCorrectNetwork = computed(() => Number(chainId.value) === NETWORK_CONFIG.targetChainId)
-const isInitializing = ref(false)
+const isInitializing = ref(!!account.value)
 const error = ref(null)
 const currentNetwork = computed(() => {
   if (Number(chainId.value) === NETWORK_CONFIG.targetChainId) return NETWORK_CONFIG
@@ -31,26 +93,37 @@ const { tokenAddress, nftAddress, loadAddresses, saveChainId } = useContractAddr
 
 // 自动恢复连接：页面刷新时检查钱包已授权账户。
 async function initAutoConnect() {
-  if (!window.ethereum) return false
+  if (!window.ethereum) {
+    clearWalletSession()
+    account.value = null
+    chainId.value = null
+    isInitializing.value = false
+    return false
+  }
+
+  isInitializing.value = true
+  error.value = null
 
   try {
     const accounts = await window.ethereum.request({ method: 'eth_accounts' })
-    if (accounts.length === 0) return false
-
-    isInitializing.value = true
-    error.value = null
+    if (accounts.length === 0) {
+      disconnect()
+      return false
+    }
 
     const browserProvider = new ethers.BrowserProvider(window.ethereum)
     const network = await browserProvider.getNetwork()
     const userSigner = await browserProvider.getSigner()
+    const networkId = Number(network.chainId)
 
     account.value = accounts[0]
-    chainId.value = Number(network.chainId)
+    chainId.value = networkId
     provider.value = browserProvider
     signer.value = userSigner
 
-    saveChainId(Number(network.chainId))
-    loadAddresses(Number(network.chainId))
+    saveWalletSession(accounts[0], networkId)
+    saveChainId(networkId)
+    loadAddresses(networkId)
 
     return true
   } catch (e) {
@@ -117,14 +190,16 @@ async function connect() {
     const accounts = await browserProvider.send('eth_requestAccounts', [])
     const network = await browserProvider.getNetwork()
     const userSigner = await browserProvider.getSigner()
+    const networkId = Number(network.chainId)
 
     account.value = accounts[0]
-    chainId.value = Number(network.chainId)
+    chainId.value = networkId
     provider.value = browserProvider
     signer.value = userSigner
 
-    saveChainId(Number(network.chainId))
-    loadAddresses(Number(network.chainId))
+    saveWalletSession(accounts[0], networkId)
+    saveChainId(networkId)
+    loadAddresses(networkId)
   } catch (e) {
     if (e.code === 4001) {
       error.value = t('modules.wallet.error.rejected')
@@ -167,6 +242,11 @@ async function switchNetwork() {
 }
 
 function disconnect() {
+  const disconnectedAccount = account.value
+  const disconnectedChainId = chainId.value
+
+  clearWalletSession()
+  clearConnectTimeCache(disconnectedAccount, disconnectedChainId)
   account.value = null
   chainId.value = null
   provider.value = null
@@ -176,8 +256,24 @@ function disconnect() {
   nftContractRead.value = null
   nftContractWrite.value = null
   isOwner.value = false
+  isInitializing.value = false
   error.value = null
   // 断开钱包不清除部署地址；重置部署走独立入口。
+}
+
+async function syncWalletAuthorization() {
+  if (!window.ethereum || !account.value) return
+
+  try {
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' })
+    const activeAccount = normalizeAddress(account.value)
+    const stillAuthorized = accounts.some((address) => normalizeAddress(address) === activeAccount)
+    if (!stillAuthorized) {
+      disconnect()
+    }
+  } catch (e) {
+    console.error('Wallet authorization check failed:', e)
+  }
 }
 
 let listenersSetup = false
@@ -194,9 +290,14 @@ function setupListeners() {
       account.value = accounts[0]
       try {
         const newProvider = new ethers.BrowserProvider(window.ethereum)
+        const network = await newProvider.getNetwork()
         const newSigner = await newProvider.getSigner()
         provider.value = newProvider
         signer.value = newSigner
+        chainId.value = Number(network.chainId)
+        saveWalletSession(accounts[0], Number(network.chainId))
+        saveChainId(Number(network.chainId))
+        loadAddresses(Number(network.chainId))
       } catch {
         disconnect()
       }
@@ -211,10 +312,20 @@ function setupListeners() {
       provider.value = newProvider
       signer.value = newSigner
       chainId.value = Number(network.chainId)
+      saveWalletSession(account.value, Number(network.chainId))
       saveChainId(Number(network.chainId))
       loadAddresses(Number(network.chainId))
     } catch {
       disconnect()
+    }
+  })
+
+  window.ethereum.on('disconnect', disconnect)
+
+  window.addEventListener('focus', syncWalletAuthorization)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncWalletAuthorization()
     }
   })
 }

@@ -56,6 +56,7 @@ export function useCommunityData({
   const txHistoryScope = ref('account')
   const readData = ref({})
   const readError = ref(null)
+  const readErrorType = ref(null)
   const readLoading = ref(false)
   const poolData = ref({})
   const posts = ref([])
@@ -65,9 +66,10 @@ export function useCommunityData({
   const commentCooldownEnd = ref(0)
   let cooldownTimer = null
 
-  const txHistoryList = computed(() =>
-    txHistoryScope.value === 'shared' ? sharedTxHistoryRef.value : txHistoryRef.value
-  )
+  const txHistoryList = computed(() => {
+    if (!canInteract.value) return []
+    return txHistoryScope.value === 'shared' ? sharedTxHistoryRef.value : txHistoryRef.value
+  })
 
   const labelMap = computed(() => ({
     ctkBalance: t('modules.chain_data.field.ctk_balance'),
@@ -246,8 +248,20 @@ export function useCommunityData({
 
     readData.value = cloneValue(userCache.data)
     readError.value = null
+    readErrorType.value = null
     applyCurrentCooldowns(loadPersistedCooldowns(targetAddr))
     return true
+  }
+
+  function isContractNotInitializedError(error) {
+    return error?.message === t('common.message.contract_not_initialized')
+  }
+
+  function setContractUnavailableNotice() {
+    readData.value = {}
+    readError.value = t('common.message.contract_not_initialized')
+    readErrorType.value = 'contract'
+    readLoading.value = false
   }
 
   async function fetchPosts() {
@@ -402,6 +416,7 @@ export function useCommunityData({
     if (targetIsCurrent && options.setLoading) {
       readLoading.value = true
       readError.value = null
+      readErrorType.value = null
     }
 
     try {
@@ -412,6 +427,7 @@ export function useCommunityData({
       if (targetIsCurrent) {
         readData.value = snapshot.data
         readError.value = null
+        readErrorType.value = null
         applyCurrentCooldowns(snapshot.cooldowns)
 
         if (options.showSummary) {
@@ -436,8 +452,13 @@ export function useCommunityData({
     } catch (e) {
       const message = e.message || String(e)
       if (targetIsCurrent) {
-        readError.value = message
-        if (options.showErrors !== false) {
+        if (isContractNotInitializedError(e)) {
+          setContractUnavailableNotice()
+        } else {
+          readError.value = message
+          readErrorType.value = 'error'
+        }
+        if (options.showErrors !== false && !isContractNotInitializedError(e)) {
           ElMessage({
             message: t('modules.chain_data.summary.query_failed', { message }),
             type: 'error',
@@ -573,6 +594,7 @@ export function useCommunityData({
     if (options.syncCurrent !== false && isCurrentAccount(normalized)) {
       readData.value = { ...readData.value, ...updates }
       readError.value = null
+      readErrorType.value = null
       applyCurrentCooldowns(cooldowns)
     }
 
@@ -602,6 +624,12 @@ export function useCommunityData({
 
   async function refreshData(options = {}) {
     if (!account.value) return null
+
+    if (!tokenContractRead.value || !nftContractRead.value) {
+      setContractUnavailableNotice()
+      loadTxHistories(account.value)
+      return null
+    }
 
     globalRefreshLoading.value = true
 
@@ -736,6 +764,9 @@ export function useCommunityData({
   watch(account, (newAddr, oldAddr) => {
     if (!newAddr) {
       loadTxHistories(null)
+      readData.value = {}
+      readError.value = null
+      readErrorType.value = null
       return
     }
     if (newAddr === oldAddr) return
@@ -743,6 +774,7 @@ export function useCommunityData({
     loadTxHistories(newAddr)
     readData.value = {}
     readError.value = null
+    readErrorType.value = null
 
     if (!hydrateCurrentAccountFromCache(newAddr)) {
       refreshAccountData(newAddr, {
@@ -775,6 +807,7 @@ export function useCommunityData({
     labelMap,
     readData,
     readError,
+    readErrorType,
     readLoading,
     poolData,
     posts,

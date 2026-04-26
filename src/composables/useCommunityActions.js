@@ -23,6 +23,7 @@ export function useCommunityActions({
   clearAllContractData,
   readData,
   readError,
+  readErrorType,
   poolData,
   posts,
   isDataLoaded,
@@ -77,6 +78,7 @@ export function useCommunityActions({
 
       readData.value = {}
       readError.value = null
+      readErrorType.value = null
       poolData.value = {}
       posts.value = []
       isDataLoaded.value = false
@@ -153,6 +155,7 @@ export function useCommunityActions({
     resetDeploy()
     readData.value = {}
     readError.value = null
+    readErrorType.value = null
     poolData.value = {}
     posts.value = []
     showTransfer.value = false

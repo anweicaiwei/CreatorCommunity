@@ -41,12 +41,11 @@ const timeSinceConnect = ref('')
 let timeTimer = null
 
 // 获取连接时间存储key（绑定到账户和链ID，tokenAddr可能为空）
-function getConnectTimeKey() {
-  // 使用 props 中的值，或使用 localStorage 中的值
-  const chainId = props.chainId || localStorage.getItem('creatorcommunity_last_chain_id') || 'unknown'
-  const account = props.account || ''
+function getConnectTimeKey(account = props.account, chainId = props.chainId) {
+  const resolvedChainId = chainId || localStorage.getItem('creatorcommunity_current_chainId') || 'unknown'
+  const resolvedAccount = account || ''
   // tokenAddr 可能为空（未部署合约时），但连接时间仍然需要绑定到账户
-  return `creatorcommunity_${chainId}_${account}_connect_time`
+  return `creatorcommunity_${resolvedChainId}_${resolvedAccount}_connect_time`
 }
 
 const formattedAccount = computed(() => {
@@ -60,28 +59,43 @@ const explorerUrl = computed(() => {
 })
 
 // 从 localStorage 恢复连接时间
-function loadConnectTime() {
-  const key = getConnectTimeKey()
+function loadConnectTime(account = props.account, chainId = props.chainId) {
+  const key = getConnectTimeKey(account, chainId)
   const saved = localStorage.getItem(key)
   if (saved) {
     connectTime.value = new Date(parseInt(saved, 10))
     updateTimeSinceConnect()
+    if (timeTimer) clearInterval(timeTimer)
     timeTimer = setInterval(updateTimeSinceConnect, 1000)
   }
 }
 
 // 保存连接时间到 localStorage
-function saveConnectTime() {
-  if (connectTime.value && props.account) {
-    const key = getConnectTimeKey()
+function saveConnectTime(account = props.account, chainId = props.chainId) {
+  if (connectTime.value && account) {
+    const key = getConnectTimeKey(account, chainId)
     localStorage.setItem(key, connectTime.value.getTime().toString())
   }
 }
 
 // 清除连接时间（断开连接时）
-function clearConnectTime() {
-  const key = getConnectTimeKey()
-  localStorage.removeItem(key)
+function clearConnectTime(account = props.account, chainId = props.chainId) {
+  if (!account) return
+
+  const normalizedAccount = String(account).toLowerCase()
+  localStorage.removeItem(getConnectTimeKey(account, chainId))
+
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const key = localStorage.key(i)
+    if (
+      key &&
+      key.startsWith('creatorcommunity_') &&
+      key.endsWith('_connect_time') &&
+      key.toLowerCase().includes(`_${normalizedAccount}_connect_time`)
+    ) {
+      localStorage.removeItem(key)
+    }
+  }
 }
 
 onMounted(async () => {
@@ -90,15 +104,17 @@ onMounted(async () => {
 })
 
 // 监听账户和连接状态变化
-watch([() => props.isConnected, () => props.account], (connected, account) => {
+watch([() => props.isConnected, () => props.account, () => props.chainId], ([connected, account, chainId], oldState = []) => {
+  const [, previousAccount, previousChainId] = oldState
+
   if (connected && account) {
-    const key = getConnectTimeKey()
+    const key = getConnectTimeKey(account, chainId)
     const saved = localStorage.getItem(key)
     if (saved) {
       connectTime.value = new Date(parseInt(saved, 10))
     } else {
       connectTime.value = new Date()
-      saveConnectTime()
+      saveConnectTime(account, chainId)
     }
     updateTimeSinceConnect()
     if (timeTimer) clearInterval(timeTimer)
@@ -106,7 +122,7 @@ watch([() => props.isConnected, () => props.account], (connected, account) => {
   } else if (!connected || !account) {
     connectTime.value = null
     timeSinceConnect.value = ''
-    clearConnectTime()
+    clearConnectTime(previousAccount || account, previousChainId || chainId)
     if (timeTimer) {
       clearInterval(timeTimer)
       timeTimer = null

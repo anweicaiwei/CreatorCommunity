@@ -20,6 +20,7 @@ syncDarkMode()
 const {
   readData,
   readError,
+  readErrorType,
   readLoading,
   labelMap,
   canInteract,
@@ -104,7 +105,7 @@ function switchLocale(value) {
           @toggle-transfer="emit('toggle-transfer')"
         />
 
-        <template v-if="isConnected && !isDataLoaded">
+        <template v-if="canInteract && !isDataLoaded">
           <div class="loading-state">
             <el-icon class="loading-icon" :size="32"><Loading /></el-icon>
             <span>{{ dataLoadingProgress || t('common.message.loading') }}</span>
@@ -189,9 +190,11 @@ function switchLocale(value) {
           <ChainDataSection
             :read-data="readData"
             :read-error="readError"
+            :read-error-type="readErrorType"
             :read-loading="readLoading"
             :label-map="labelMap"
             :is-wallet-connected="isConnected"
+            :has-addresses="hasAddresses"
             @refresh="emit('refresh-data')"
           />
         </div>

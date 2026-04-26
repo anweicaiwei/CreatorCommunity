@@ -19,6 +19,11 @@
     "pending": "待提现: {amount} CTK",
     "query_failed": "数据查询失败: {message}"
   },
+  "status": {
+    "no_contract_title": "合约实例未初始化",
+    "no_contract_message": "当前网络还没有可读取的合约实例，请先部署合约后再刷新账户数据。",
+    "query_error_title": "数据查询失败"
+  },
   "category": {
     "account": "账户信息",
     "interaction": "互动状态",

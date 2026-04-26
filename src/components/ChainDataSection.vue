@@ -1,7 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Refresh, Wallet, ChatLineSquare, Medal, Coin, Loading } from '@element-plus/icons-vue'
+import { Wallet, ChatLineSquare, Medal, Coin, Loading, Warning } from '@element-plus/icons-vue'
 import Card from '@/components/card.vue'
 
 const { t } = useI18n()
@@ -9,9 +9,11 @@ const { t } = useI18n()
 const props = defineProps({
   readData: Object,
   readError: String,
+  readErrorType: String,
   readLoading: Boolean,
   labelMap: Object,
-  isWalletConnected: Boolean
+  isWalletConnected: Boolean,
+  hasAddresses: Boolean
 })
 
 const emit = defineEmits(['refresh'])
@@ -82,10 +84,30 @@ const categorizedData = computed(() => {
       }))
   })).filter(cat => cat.items.length > 0)
 })
+
+const isContractUnavailable = computed(() =>
+  props.readErrorType === 'contract' || (props.isWalletConnected && !props.hasAddresses)
+)
+
+const readStatusType = computed(() =>
+  isContractUnavailable.value ? 'contract' : 'error'
+)
+
+const readStatusTitle = computed(() =>
+  isContractUnavailable.value
+    ? t('modules.chain_data.status.no_contract_title')
+    : t('modules.chain_data.status.query_error_title')
+)
+
+const readStatusMessage = computed(() =>
+  isContractUnavailable.value
+    ? t('modules.chain_data.status.no_contract_message')
+    : props.readError
+)
 </script>
 
 <template>
-  <Card :title="t('modules.chain_data.title')" icon="DataAnalysis" :refresh-btn="true" :refresh-loading="readLoading" @refresh="emit('refresh')">
+  <Card :title="t('modules.chain_data.title')" icon="DataAnalysis" :refresh-btn="hasAddresses" :refresh-loading="readLoading" @refresh="emit('refresh')">
     <!-- 重新连接时的加载动画 -->
     <div v-if="props.isWalletConnected && readLoading" class="reconnecting-overlay">
       <el-icon class="reconnect-spinner" :size="28"><Loading /></el-icon>
@@ -93,7 +115,15 @@ const categorizedData = computed(() => {
     </div>
 
     <!-- 错误提示 -->
-    <el-text v-else-if="readError" type="danger" size="small" class="data-error">{{ readError }}</el-text>
+    <div v-else-if="isContractUnavailable || readError" class="data-status" :class="`data-status--${readStatusType}`">
+      <div class="data-status-icon">
+        <el-icon><Warning /></el-icon>
+      </div>
+      <div class="data-status-content">
+        <div class="data-status-title">{{ readStatusTitle }}</div>
+        <div class="data-status-message">{{ readStatusMessage }}</div>
+      </div>
+    </div>
 
     <!-- 分类卡片展示 -->
     <el-scrollbar v-else-if="Object.keys(readData).length" class="data-scrollbar">
@@ -121,9 +151,59 @@ const categorizedData = computed(() => {
 </template>
 
 <style scoped>
-.data-error {
-  display: block;
-  margin-bottom: 12px;
+.data-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-background-soft);
+}
+
+.data-status--contract {
+  border-color: rgba(245, 158, 11, 0.28);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(99, 102, 241, 0.04));
+}
+
+.data-status--error {
+  border-color: rgba(239, 68, 68, 0.24);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(99, 102, 241, 0.04));
+}
+
+.data-status-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+  font-size: 18px;
+}
+
+.data-status--error .data-status-icon {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+}
+
+.data-status-content {
+  min-width: 0;
+}
+
+.data-status-title {
+  margin-bottom: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.data-status-message {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--color-text-muted);
 }
 
 .data-scrollbar {

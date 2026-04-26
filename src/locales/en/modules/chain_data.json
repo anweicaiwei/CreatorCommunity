@@ -19,6 +19,11 @@
     "pending": "Pending withdrawal: {amount} CTK",
     "query_failed": "Data query failed: {message}"
   },
+  "status": {
+    "no_contract_title": "Contract instance is not initialized",
+    "no_contract_message": "No readable contract instance is available on the current network. Deploy the contract before refreshing account data.",
+    "query_error_title": "Data Query Failed"
+  },
   "category": {
     "account": "Account Information",
     "interaction": "Interaction Status",
