@@ -2,6 +2,10 @@
 
 **English** | [简体中文](./README.md)
 
+**Live Demo**: [https://xiaocailab.cn/CreatorCommunity/](https://xiaocailab.cn/CreatorCommunity/)
+
+> The demo currently uses the Sepolia test network. Do not use mainnet assets or production wallets.
+
 ## Table of Contents
 
 - [Overview](#overview)
@@ -344,17 +348,42 @@ The app will be available at `http://localhost:5173/CreatorCommunity/`.
 
 ```bash
 # Build for production (minified)
-npm run build
+npm.cmd run build
 # Preview production build locally
-npm run preview
+npm.cmd run preview
 ```
 
-### Environment Variables (Optional)
+### Server Deployment Configuration
 
-Copy `.env.example` to `.env`, or manually create a `.env` file in the project root to override default network
-settings:
+This project is deployed under the `/CreatorCommunity/` subpath by default, and `base` in `vite.config.js` is fixed to `/CreatorCommunity`. If your server domain is `https://example.com`, the production URL should be `https://example.com/CreatorCommunity/`.
+
+Do not commit personal deployment settings. Before deployment, copy the template and create a local production config:
+
+```bash
+copy .env.example .env.production.local
+```
+
+Then update the network settings in `.env.production.local` and build:
+
+```bash
+npm.cmd run build
+```
+
+Deploy the generated `dist/` contents under the server path `/CreatorCommunity/`. The server must fall back `/CreatorCommunity/*` to `/CreatorCommunity/index.html`; otherwise refreshing frontend routes such as `/CreatorCommunity/manual` will return 404.
+
+Contract addresses are not part of the template config. The app still stores Token / NFT contract addresses in browser `localStorage` by chain ID, so readers can deploy contracts from the frontend or use their own locally cached addresses on first use.
+
+### Environment Variable Template
+
+`.env.example` is the public template for open-source readers. Copy it to `.env.local` for local development, or to `.env.production.local` for a personal server deployment; these personal config files are ignored by `.gitignore` and should not be committed.
 
 ```env
+# Copy this file to .env.local for local development, or to
+# .env.production.local before building a personal server deployment.
+# Do not commit your copied .env*.local file.
+
+# Target EVM network. Replace these values with your own RPC provider
+# and block explorer if you deploy to another chain.
 VITE_TARGET_CHAIN_ID=11155111
 VITE_NETWORK_NAME=Sepolia Testnet
 VITE_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com

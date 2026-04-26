@@ -2,6 +2,10 @@
 
 **简体中文** | [English](./README.en.md)
 
+**在线预览**：[https://xiaocailab.cn/CreatorCommunity/](https://xiaocailab.cn/CreatorCommunity/)
+
+> 当前演示站点使用 Sepolia 测试网络，请勿在页面中使用主网资产或真实生产钱包。
+
 ## 目录
 
 - [项目概述](#项目概述)
@@ -323,16 +327,46 @@ npm run dev
 
 ```bash
 # 构建生产版本（已压缩）
-npm run build
+npm.cmd run build
 # 本地预览生产构建
-npm run preview
+npm.cmd run preview
 ```
 
-### 环境变量（可选）
+### 服务器部署配置
 
-可复制 `.env.example` 为 `.env`，或在项目根目录手动创建 `.env` 文件以覆盖默认网络配置：
+本项目默认部署在 `/CreatorCommunity/` 子路径下，`vite.config.js` 中的 `base` 已固定为 `/CreatorCommunity`。如果服务器域名为
+`https://example.com`，生产访问地址应为 `https://example.com/CreatorCommunity/`。
+
+个人部署配置不要提交到 Git。部署前复制模板并创建本地生产配置：
+
+```bash
+copy .env.example .env.production.local
+```
+
+然后修改 `.env.production.local` 中的网络配置，再执行：
+
+```bash
+npm.cmd run build
+```
+
+将生成的 `dist/` 内容部署到服务器的 `/CreatorCommunity/` 路径下。服务器需要把 `/CreatorCommunity/*` 回退到
+`/CreatorCommunity/index.html`，否则刷新 `/CreatorCommunity/manual` 等前端路由时会出现 404。
+
+合约地址不写入模板配置。应用仍按当前链 ID 将 Token / NFT 合约地址保存到浏览器 `localStorage`
+，读者首次使用时可以通过前端部署合约或使用自己的本地缓存地址。
+
+### 环境变量模板
+
+`.env.example` 是给开源读者使用的公开模板。可复制为 `.env.local` 用于本地开发，或复制为 `.env.production.local`
+用于个人服务器部署；这些个人配置文件已被 `.gitignore` 忽略，不应提交到仓库。
 
 ```env
+# Copy this file to .env.local for local development, or to
+# .env.production.local before building a personal server deployment.
+# Do not commit your copied .env*.local file.
+
+# Target EVM network. Replace these values with your own RPC provider
+# and block explorer if you deploy to another chain.
 VITE_TARGET_CHAIN_ID=11155111
 VITE_NETWORK_NAME=Sepolia Testnet
 VITE_RPC_URL=https://ethereum-sepolia-rpc.publicnode.com
