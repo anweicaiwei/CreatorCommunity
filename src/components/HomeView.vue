@@ -243,7 +243,7 @@ function switchLocale(value) {
   display: grid;
   grid-template-rows: minmax(260px, 1fr) minmax(300px, 1fr);
   gap: 20px;
-  height: calc(100vh - var(--topbar-offset) - 32px);
+  height: calc(100vh - var(--topbar-offset) - 60px);
   min-height: 0;
   overflow: visible;
 }

@@ -5,6 +5,70 @@ import { DECIMALS } from '@/utils/constants'
 import { formatTokenAmount, shortenAddress } from '@/utils/format'
 import { t } from '@/locales'
 
+const SOFT_ACTION_DIALOG_BODY_CLASS = 'is-soft-action-dialog-open'
+const WALLET_DISCONNECT_DIALOG_BODY_CLASS = 'is-wallet-disconnect-dialog-open'
+
+function buildConfirmList(items, className) {
+  return h('ul', { class: className }, items.map((item) => h('li', null, item)))
+}
+
+function buildConfirmPanel({
+  className,
+  titleClass,
+  markClass,
+  mark,
+  title,
+  listClass,
+  items
+}) {
+  return h('section', { class: className }, [
+    h('div', { class: titleClass }, [
+      h('span', { class: markClass }, mark),
+      h('span', null, title)
+    ]),
+    buildConfirmList(items, listClass)
+  ])
+}
+
+function showConfirmDialog({
+  bodyClass,
+  customClass,
+  title,
+  confirmButtonText,
+  content
+}) {
+  document.body.classList.add(bodyClass)
+
+  return ElMessageBox.confirm(
+    content,
+    title,
+    {
+      confirmButtonText,
+      cancelButtonText: t('common.button.cancel'),
+      draggable: true,
+      closeOnClickModal: false,
+      customClass
+    }
+  ).finally(() => {
+    document.body.classList.remove(bodyClass)
+  })
+}
+
+function buildSoftActionContent({ lead, title, mark, items }) {
+  return h('div', { class: 'action-confirm-message' }, [
+    h('p', { class: 'action-confirm-message__lead' }, lead),
+    buildConfirmPanel({
+      className: 'action-confirm-panel action-confirm-panel--primary',
+      titleClass: 'action-confirm-panel__title',
+      markClass: 'action-confirm-panel__mark',
+      mark,
+      title,
+      listClass: 'action-confirm-list',
+      items
+    })
+  ])
+}
+
 export function useCommunityActions({
   account,
   chainId,
@@ -48,32 +112,59 @@ export function useCommunityActions({
   doWrite
 }) {
   function disconnect() {
-    ElMessageBox.confirm(
-      h('div', null, [
-        h('p', { style: 'margin-bottom: 8px; font-weight: 600;' }, t('modules.wallet.message.disconnect_confirm')),
-        h('p', { style: 'margin-bottom: 4px; color: #e6a23c;' }, t('modules.wallet.message.disconnect_clear')),
-        h('ul', { style: 'margin: 0 0 12px 20px; padding-left: 0; color: #909399; font-size: 13px;' }, [
-          h('li', null, t('modules.wallet.message.cache_balance')),
-          h('li', null, t('modules.wallet.message.cache_nft')),
-          h('li', null, t('modules.wallet.message.cache_cooldown')),
-          h('li', null, t('modules.wallet.message.cache_rewards')),
-          h('li', null, t('modules.wallet.message.cache_settings'))
+    showConfirmDialog({
+      bodyClass: WALLET_DISCONNECT_DIALOG_BODY_CLASS,
+      customClass: 'wallet-disconnect-dialog',
+      title: t('modules.wallet.message.disconnect_title'),
+      confirmButtonText: t('modules.wallet.message.disconnect_confirm_button'),
+      content: h('div', { class: 'wallet-disconnect-message' }, [
+        h('p', { class: 'wallet-disconnect-message__lead' }, t('modules.wallet.message.disconnect_confirm')),
+        buildConfirmPanel({
+          className: 'wallet-disconnect-panel wallet-disconnect-panel--danger',
+          titleClass: 'wallet-disconnect-panel__title',
+          markClass: 'wallet-disconnect-panel__mark',
+          mark: '!',
+          title: t('modules.wallet.message.disconnect_warning_title'),
+          listClass: 'wallet-disconnect-list',
+          items: [
+            t('modules.wallet.message.disconnect_revoke_permission'),
+            t('modules.wallet.message.disconnect_refresh'),
+            t('modules.wallet.message.disconnect_chain_approval'),
+            t('modules.wallet.message.disconnect_reconnect')
+          ]
+        }),
+        h('div', { class: 'wallet-disconnect-grid' }, [
+          buildConfirmPanel({
+            className: 'wallet-disconnect-panel wallet-disconnect-panel--clear',
+            titleClass: 'wallet-disconnect-panel__title',
+            markClass: 'wallet-disconnect-panel__mark',
+            mark: '-',
+            title: t('modules.wallet.message.disconnect_clear'),
+            listClass: 'wallet-disconnect-list wallet-disconnect-list--compact',
+            items: [
+              t('modules.wallet.message.cache_balance'),
+              t('modules.wallet.message.cache_nft'),
+              t('modules.wallet.message.cache_cooldown'),
+              t('modules.wallet.message.cache_rewards'),
+              t('modules.wallet.message.cache_settings')
+            ]
+          }),
+          buildConfirmPanel({
+            className: 'wallet-disconnect-panel wallet-disconnect-panel--keep',
+            titleClass: 'wallet-disconnect-panel__title',
+            markClass: 'wallet-disconnect-panel__mark',
+            mark: '+',
+            title: t('modules.wallet.message.disconnect_keep'),
+            listClass: 'wallet-disconnect-list wallet-disconnect-list--compact',
+            items: [
+              t('modules.wallet.message.keep_tx'),
+              t('modules.wallet.message.keep_posts'),
+              t('modules.wallet.message.keep_pools')
+            ]
+          })
         ]),
-        h('p', { style: 'margin-bottom: 0; color: #67c23a;' }, t('modules.wallet.message.disconnect_keep')),
-        h('ul', { style: 'margin: 0; color: #909399; font-size: 13px;' }, [
-          h('li', null, t('modules.wallet.message.keep_tx')),
-          h('li', null, t('modules.wallet.message.keep_posts')),
-          h('li', null, t('modules.wallet.message.keep_pools'))
-        ])
-      ]),
-      t('modules.wallet.message.disconnect_title'),
-      {
-        confirmButtonText: t('modules.wallet.message.disconnect_confirm_button'),
-        cancelButtonText: t('common.button.cancel'),
-        type: 'warning',
-        draggable: true
-      }
-    ).then(() => {
+      ])
+    }).then(async () => {
       const currentAccount = account.value
 
       readData.value = {}
@@ -92,9 +183,35 @@ export function useCommunityActions({
       }
 
       loadTxHistories(null)
-      walletDisconnect()
+      await walletDisconnect({ revokePermissions: true })
       ElMessage({ message: t('modules.wallet.message.disconnected'), type: 'info', duration: 2000 })
     }).catch(() => {})
+  }
+
+  async function handleConnect() {
+    try {
+      await showConfirmDialog({
+        bodyClass: SOFT_ACTION_DIALOG_BODY_CLASS,
+        customClass: 'action-confirm-dialog action-confirm-dialog--connect',
+        title: t('modules.wallet.message.connect_confirm_title'),
+        confirmButtonText: t('modules.wallet.message.connect_confirm_button'),
+        content: buildSoftActionContent({
+          lead: t('modules.wallet.message.connect_confirm'),
+          title: t('modules.wallet.message.connect_confirm_panel_title'),
+          mark: 'i',
+          items: [
+            t('modules.wallet.message.connect_request_permission'),
+            t('modules.wallet.message.connect_no_transaction'),
+            t('modules.wallet.message.connect_no_gas'),
+            t('modules.wallet.message.connect_no_asset_move')
+          ]
+        })
+      })
+    } catch {
+      return
+    }
+
+    await connect()
   }
 
   async function handleDeploy() {
@@ -104,6 +221,29 @@ export function useCommunityActions({
     }
     if (!isCorrectNetwork.value) {
       ElMessage.error(t('modules.deploy.message.switch_correct_network'))
+      return
+    }
+
+    try {
+      await showConfirmDialog({
+        bodyClass: SOFT_ACTION_DIALOG_BODY_CLASS,
+        customClass: 'action-confirm-dialog action-confirm-dialog--deploy',
+        title: t('modules.deploy.message.deploy_confirm_title'),
+        confirmButtonText: t('modules.deploy.message.deploy_confirm_button'),
+        content: buildSoftActionContent({
+          lead: t('modules.deploy.message.deploy_confirm'),
+          title: t('modules.deploy.message.deploy_confirm_panel_title'),
+          mark: 'i',
+          items: [
+            t('modules.deploy.message.deploy_token'),
+            t('modules.deploy.message.deploy_create_nft'),
+            t('modules.deploy.message.deploy_metamask_confirm'),
+            t('modules.deploy.message.deploy_gas'),
+            t('modules.deploy.message.deploy_save_addresses')
+          ]
+        })
+      })
+    } catch {
       return
     }
 
@@ -684,6 +824,7 @@ export function useCommunityActions({
       'withdraw-ctk': testNFTWithdrawCTK,
       'withdraw-all-ctk': testNFTWithdrawAllCTK,
       'withdraw-overflow': testNFTWithdrawOverflow,
+      connect: handleConnect,
       disconnect,
       deploy: handleDeploy,
       'clear-addresses': handleClearAddresses

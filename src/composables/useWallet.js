@@ -15,6 +15,10 @@ function loadCachedWalletAccount() {
   }
 }
 
+function hasWalletSession() {
+  return !!loadCachedWalletAccount()
+}
+
 function loadCachedChainId() {
   try {
     const cached = localStorage.getItem(WALLET_CHAIN_ID_KEY)
@@ -66,6 +70,19 @@ function clearConnectTimeCache(address, networkId) {
   } catch {}
 }
 
+async function revokeAccountPermission() {
+  if (!window.ethereum?.request) return
+
+  try {
+    await window.ethereum.request({
+      method: 'wallet_revokePermissions',
+      params: [{ eth_accounts: {} }]
+    })
+  } catch (e) {
+    console.warn('MetaMask permission revoke failed:', e)
+  }
+}
+
 const account = ref(loadCachedWalletAccount())
 const chainId = ref(loadCachedChainId())
 const provider = shallowRef(null)
@@ -93,6 +110,15 @@ const { tokenAddress, nftAddress, loadAddresses, saveChainId } = useContractAddr
 
 // 自动恢复连接：页面刷新时检查钱包已授权账户。
 async function initAutoConnect() {
+  if (!hasWalletSession()) {
+    account.value = null
+    provider.value = null
+    signer.value = null
+    isOwner.value = false
+    isInitializing.value = false
+    return false
+  }
+
   if (!window.ethereum) {
     clearWalletSession()
     account.value = null
@@ -241,9 +267,14 @@ async function switchNetwork() {
   }
 }
 
-function disconnect() {
+async function disconnect(options = {}) {
+  const { revokePermissions = false } = options
   const disconnectedAccount = account.value
   const disconnectedChainId = chainId.value
+
+  if (revokePermissions) {
+    await revokeAccountPermission()
+  }
 
   clearWalletSession()
   clearConnectTimeCache(disconnectedAccount, disconnectedChainId)
@@ -287,6 +318,8 @@ function setupListeners() {
     if (accounts.length === 0) {
       disconnect()
     } else {
+      if (!account.value && !hasWalletSession()) return
+
       account.value = accounts[0]
       try {
         const newProvider = new ethers.BrowserProvider(window.ethereum)
@@ -305,6 +338,8 @@ function setupListeners() {
   })
 
   window.ethereum.on('chainChanged', async () => {
+    if (!account.value && !hasWalletSession()) return
+
     try {
       const newProvider = new ethers.BrowserProvider(window.ethereum)
       const network = await newProvider.getNetwork()

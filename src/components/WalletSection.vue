@@ -202,15 +202,24 @@ function formatDuration(seconds) {
         
         <!-- 未部署：显示部署按钮 -->
         <div v-if="!hasAddresses" class="contract-deploy-prompt">
-          <p class="deploy-desc">{{ t('modules.wallet.contract.deploy_desc') }}</p>
+          <div class="deploy-desc">
+            <el-icon class="deploy-desc-icon"><InfoFilled /></el-icon>
+            <span>{{ t('modules.wallet.contract.deploy_desc') }}</span>
+          </div>
           <div class="deploy-info-list">
             <div class="deploy-info-item">
-              <el-tag size="small" type="success" effect="plain">CTK</el-tag>
-              <span>{{ t('modules.wallet.contract.creator_token') }}</span>
+              <span class="deploy-info-item__tag tag-ctk">CTK</span>
+              <div class="deploy-info-item__body">
+                <span class="deploy-info-item__name">{{ t('modules.wallet.contract.creator_token') }}</span>
+                <span class="deploy-info-item__type">ERC20</span>
+              </div>
             </div>
             <div class="deploy-info-item">
-              <el-tag size="small" type="warning" effect="plain">CMN</el-tag>
-              <span>{{ t('modules.wallet.contract.creator_nft') }}</span>
+              <span class="deploy-info-item__tag tag-cmn">CMN</span>
+              <div class="deploy-info-item__body">
+                <span class="deploy-info-item__name">{{ t('modules.wallet.contract.creator_nft') }}</span>
+                <span class="deploy-info-item__type">ERC721</span>
+              </div>
             </div>
           </div>
           <el-button
@@ -703,27 +712,94 @@ function formatDuration(seconds) {
 .contract-deploy-prompt {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .deploy-desc {
   margin: 0;
+  padding: 10px 12px;
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--color-text);
+  line-height: 1.6;
+  background: rgba(245, 158, 11, 0.07);
+  border: 1px solid rgba(245, 158, 11, 0.14);
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.deploy-desc-icon {
+  color: var(--color-warning);
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .deploy-info-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .deploy-info-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.deploy-info-item:hover {
+  border-color: var(--color-border-hover);
+  box-shadow: var(--shadow-sm);
+}
+
+.deploy-info-item__tag {
+  flex-shrink: 0;
+  width: 42px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-family: monospace;
+}
+
+.tag-ctk {
+  background: rgba(16, 185, 129, 0.14);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.tag-cmn {
+  background: rgba(245, 158, 11, 0.14);
+  color: var(--color-warning);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+}
+
+.deploy-info-item__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.deploy-info-item__name {
   font-size: 13px;
+  font-weight: 500;
   color: var(--color-text);
+}
+
+.deploy-info-item__type {
+  font-size: 11px;
+  color: var(--color-text-muted);
 }
 
 .contract-deploy-btn {
@@ -732,6 +808,7 @@ function formatDuration(seconds) {
   border: none;
   color: var(--color-text-inverse);
   font-weight: 600;
+  padding: 12px 24px;
 }
 
 .contract-deploy-btn:hover:not(:disabled) {
@@ -741,6 +818,7 @@ function formatDuration(seconds) {
 .deploy-status-text {
   margin-top: 4px;
   display: block;
+  font-size: 12px;
 }
 
 .contract-addresses {
@@ -903,11 +981,32 @@ html.dark .contract-status-title {
 }
 
 html.dark .deploy-desc {
-  color: var(--color-text-muted);
+  color: var(--color-text-soft);
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.16);
 }
 
 html.dark .deploy-info-item {
   color: var(--color-text);
+  background: var(--color-background-mute);
+}
+
+html.dark .tag-ctk {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.32);
+}
+
+html.dark .tag-cmn {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.32);
+}
+
+html.dark .deploy-info-item__name {
+  color: var(--color-text);
+}
+
+html.dark .deploy-info-item__type {
+  color: var(--color-text-muted);
 }
 
 html.dark .contract-address-item {
